@@ -441,7 +441,11 @@ type Task struct {
 	Rank string `protobuf:"bytes,3,opt,name=rank,proto3" json:"rank,omitempty"`
 	// Features or tasks, in any project, that block this task. Cycles are
 	// rejected.
-	DependsOn     []*Dependency `protobuf:"bytes,4,rep,name=depends_on,json=dependsOn,proto3" json:"depends_on,omitempty"`
+	DependsOn []*Dependency `protobuf:"bytes,4,rep,name=depends_on,json=dependsOn,proto3" json:"depends_on,omitempty"`
+	// What the agents working on this task have recorded so another agent can
+	// continue it. Kept after the task moves on, so the user can find the
+	// branch and PR when reviewing.
+	WorkState     *WorkState `protobuf:"bytes,5,opt,name=work_state,json=workState,proto3" json:"work_state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -504,6 +508,240 @@ func (x *Task) GetDependsOn() []*Dependency {
 	return nil
 }
 
+func (x *Task) GetWorkState() *WorkState {
+	if x != nil {
+		return x.WorkState
+	}
+	return nil
+}
+
+// WorkState is what an agent records so another agent can continue a task
+// where it left off. It is committed to git with the task, so it must never
+// contain credential values; Kiln rejects values that look like secrets.
+type WorkState struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Git branch holding the work.
+	Branch string `protobuf:"bytes,1,opt,name=branch,proto3" json:"branch,omitempty"`
+	// Path to the git worktree holding the work, if not the main checkout.
+	// Specific to this machine.
+	WorktreePath string `protobuf:"bytes,2,opt,name=worktree_path,json=worktreePath,proto3" json:"worktree_path,omitempty"`
+	// Commit the work started from.
+	BaseCommit string `protobuf:"bytes,3,opt,name=base_commit,json=baseCommit,proto3" json:"base_commit,omitempty"`
+	// Latest commit made for this task.
+	HeadCommit string `protobuf:"bytes,4,opt,name=head_commit,json=headCommit,proto3" json:"head_commit,omitempty"`
+	// Pull request for the work, if one exists.
+	PullRequestUrl string `protobuf:"bytes,5,opt,name=pull_request_url,json=pullRequestUrl,proto3" json:"pull_request_url,omitempty"`
+	// The most recent agent session that worked on the task. Earlier sessions
+	// are kept in the item's version history.
+	Session *AgentSession `protobuf:"bytes,6,opt,name=session,proto3" json:"session,omitempty"`
+	// Markdown notes: what's done, what's left, how to verify it, and anything
+	// blocking.
+	Progress string `protobuf:"bytes,7,opt,name=progress,proto3" json:"progress,omitempty"`
+	// Repo-relative paths of files the agent created or relies on, such as
+	// plans, specs or notes.
+	Files []string `protobuf:"bytes,8,rep,name=files,proto3" json:"files,omitempty"`
+	// Names of credentials the work needs (e.g. an env var like GITHUB_TOKEN),
+	// never their values.
+	CredentialRefs []string `protobuf:"bytes,9,rep,name=credential_refs,json=credentialRefs,proto3" json:"credential_refs,omitempty"`
+	// Anything else a follow-up agent would need, as key-value pairs.
+	Extra         map[string]string      `protobuf:"bytes,10,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkState) Reset() {
+	*x = WorkState{}
+	mi := &file_kiln_v1_item_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkState) ProtoMessage() {}
+
+func (x *WorkState) ProtoReflect() protoreflect.Message {
+	mi := &file_kiln_v1_item_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkState.ProtoReflect.Descriptor instead.
+func (*WorkState) Descriptor() ([]byte, []int) {
+	return file_kiln_v1_item_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *WorkState) GetBranch() string {
+	if x != nil {
+		return x.Branch
+	}
+	return ""
+}
+
+func (x *WorkState) GetWorktreePath() string {
+	if x != nil {
+		return x.WorktreePath
+	}
+	return ""
+}
+
+func (x *WorkState) GetBaseCommit() string {
+	if x != nil {
+		return x.BaseCommit
+	}
+	return ""
+}
+
+func (x *WorkState) GetHeadCommit() string {
+	if x != nil {
+		return x.HeadCommit
+	}
+	return ""
+}
+
+func (x *WorkState) GetPullRequestUrl() string {
+	if x != nil {
+		return x.PullRequestUrl
+	}
+	return ""
+}
+
+func (x *WorkState) GetSession() *AgentSession {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
+func (x *WorkState) GetProgress() string {
+	if x != nil {
+		return x.Progress
+	}
+	return ""
+}
+
+func (x *WorkState) GetFiles() []string {
+	if x != nil {
+		return x.Files
+	}
+	return nil
+}
+
+func (x *WorkState) GetCredentialRefs() []string {
+	if x != nil {
+		return x.CredentialRefs
+	}
+	return nil
+}
+
+func (x *WorkState) GetExtra() map[string]string {
+	if x != nil {
+		return x.Extra
+	}
+	return nil
+}
+
+func (x *WorkState) GetUpdateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdateTime
+	}
+	return nil
+}
+
+// AgentSession identifies an agent session so its work can be traced or
+// resumed.
+type AgentSession struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The agent host (e.g. "claude-code") and its version. Kiln fills these in
+	// from the MCP connection.
+	Host        string `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
+	HostVersion string `protobuf:"bytes,2,opt,name=host_version,json=hostVersion,proto3" json:"host_version,omitempty"`
+	// The host's own session ID, if it can resume sessions (e.g. with
+	// `claude --resume <id>`). Specific to this machine.
+	SessionId string `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// Path to the session's transcript, if the host keeps one. A follow-up
+	// agent can read it to see what was tried. Specific to this machine.
+	TranscriptPath string `protobuf:"bytes,4,opt,name=transcript_path,json=transcriptPath,proto3" json:"transcript_path,omitempty"`
+	// Model the session ran on.
+	Model         string `protobuf:"bytes,5,opt,name=model,proto3" json:"model,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentSession) Reset() {
+	*x = AgentSession{}
+	mi := &file_kiln_v1_item_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentSession) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentSession) ProtoMessage() {}
+
+func (x *AgentSession) ProtoReflect() protoreflect.Message {
+	mi := &file_kiln_v1_item_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentSession.ProtoReflect.Descriptor instead.
+func (*AgentSession) Descriptor() ([]byte, []int) {
+	return file_kiln_v1_item_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *AgentSession) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+func (x *AgentSession) GetHostVersion() string {
+	if x != nil {
+		return x.HostVersion
+	}
+	return ""
+}
+
+func (x *AgentSession) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *AgentSession) GetTranscriptPath() string {
+	if x != nil {
+		return x.TranscriptPath
+	}
+	return ""
+}
+
+func (x *AgentSession) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
 // Dependency is a link to an item that blocks the item holding it. It is
 // stored on the blocked item, so adding one changes only that item's file.
 type Dependency struct {
@@ -519,7 +757,7 @@ type Dependency struct {
 
 func (x *Dependency) Reset() {
 	*x = Dependency{}
-	mi := &file_kiln_v1_item_proto_msgTypes[4]
+	mi := &file_kiln_v1_item_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -531,7 +769,7 @@ func (x *Dependency) String() string {
 func (*Dependency) ProtoMessage() {}
 
 func (x *Dependency) ProtoReflect() protoreflect.Message {
-	mi := &file_kiln_v1_item_proto_msgTypes[4]
+	mi := &file_kiln_v1_item_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -544,7 +782,7 @@ func (x *Dependency) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Dependency.ProtoReflect.Descriptor instead.
 func (*Dependency) Descriptor() ([]byte, []int) {
-	return file_kiln_v1_item_proto_rawDescGZIP(), []int{4}
+	return file_kiln_v1_item_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Dependency) GetItemId() string {
@@ -588,14 +826,43 @@ const file_kiln_v1_item_proto_rawDesc = "" +
 	"\x0fstatus_override\x18\x03 \x01(\x0e2\x0f.kiln.v1.StatusR\x0estatusOverride\x12\x12\n" +
 	"\x04rank\x18\x04 \x01(\tR\x04rank\x122\n" +
 	"\n" +
-	"depends_on\x18\x05 \x03(\v2\x13.kiln.v1.DependencyR\tdependsOn\"\x96\x01\n" +
+	"depends_on\x18\x05 \x03(\v2\x13.kiln.v1.DependencyR\tdependsOn\"\xc9\x01\n" +
 	"\x04Task\x12\x1d\n" +
 	"\n" +
 	"feature_id\x18\x01 \x01(\tR\tfeatureId\x12'\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x0f.kiln.v1.StatusR\x06status\x12\x12\n" +
 	"\x04rank\x18\x03 \x01(\tR\x04rank\x122\n" +
 	"\n" +
-	"depends_on\x18\x04 \x03(\v2\x13.kiln.v1.DependencyR\tdependsOn\"[\n" +
+	"depends_on\x18\x04 \x03(\v2\x13.kiln.v1.DependencyR\tdependsOn\x121\n" +
+	"\n" +
+	"work_state\x18\x05 \x01(\v2\x12.kiln.v1.WorkStateR\tworkState\"\xec\x03\n" +
+	"\tWorkState\x12\x16\n" +
+	"\x06branch\x18\x01 \x01(\tR\x06branch\x12#\n" +
+	"\rworktree_path\x18\x02 \x01(\tR\fworktreePath\x12\x1f\n" +
+	"\vbase_commit\x18\x03 \x01(\tR\n" +
+	"baseCommit\x12\x1f\n" +
+	"\vhead_commit\x18\x04 \x01(\tR\n" +
+	"headCommit\x12(\n" +
+	"\x10pull_request_url\x18\x05 \x01(\tR\x0epullRequestUrl\x12/\n" +
+	"\asession\x18\x06 \x01(\v2\x15.kiln.v1.AgentSessionR\asession\x12\x1a\n" +
+	"\bprogress\x18\a \x01(\tR\bprogress\x12\x14\n" +
+	"\x05files\x18\b \x03(\tR\x05files\x12'\n" +
+	"\x0fcredential_refs\x18\t \x03(\tR\x0ecredentialRefs\x123\n" +
+	"\x05extra\x18\n" +
+	" \x03(\v2\x1d.kiln.v1.WorkState.ExtraEntryR\x05extra\x12;\n" +
+	"\vupdate_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"updateTime\x1a8\n" +
+	"\n" +
+	"ExtraEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa3\x01\n" +
+	"\fAgentSession\x12\x12\n" +
+	"\x04host\x18\x01 \x01(\tR\x04host\x12!\n" +
+	"\fhost_version\x18\x02 \x01(\tR\vhostVersion\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x03 \x01(\tR\tsessionId\x12'\n" +
+	"\x0ftranscript_path\x18\x04 \x01(\tR\x0etranscriptPath\x12\x14\n" +
+	"\x05model\x18\x05 \x01(\tR\x05model\"[\n" +
 	"\n" +
 	"Dependency\x12\x17\n" +
 	"\aitem_id\x18\x01 \x01(\tR\x06itemId\x124\n" +
@@ -628,7 +895,7 @@ func file_kiln_v1_item_proto_rawDescGZIP() []byte {
 }
 
 var file_kiln_v1_item_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_kiln_v1_item_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_kiln_v1_item_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_kiln_v1_item_proto_goTypes = []any{
 	(BlockUntil)(0),               // 0: kiln.v1.BlockUntil
 	(Status)(0),                   // 1: kiln.v1.Status
@@ -636,25 +903,32 @@ var file_kiln_v1_item_proto_goTypes = []any{
 	(*Project)(nil),               // 3: kiln.v1.Project
 	(*Feature)(nil),               // 4: kiln.v1.Feature
 	(*Task)(nil),                  // 5: kiln.v1.Task
-	(*Dependency)(nil),            // 6: kiln.v1.Dependency
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*WorkState)(nil),             // 6: kiln.v1.WorkState
+	(*AgentSession)(nil),          // 7: kiln.v1.AgentSession
+	(*Dependency)(nil),            // 8: kiln.v1.Dependency
+	nil,                           // 9: kiln.v1.WorkState.ExtraEntry
+	(*timestamppb.Timestamp)(nil), // 10: google.protobuf.Timestamp
 }
 var file_kiln_v1_item_proto_depIdxs = []int32{
-	7,  // 0: kiln.v1.Item.create_time:type_name -> google.protobuf.Timestamp
-	7,  // 1: kiln.v1.Item.update_time:type_name -> google.protobuf.Timestamp
+	10, // 0: kiln.v1.Item.create_time:type_name -> google.protobuf.Timestamp
+	10, // 1: kiln.v1.Item.update_time:type_name -> google.protobuf.Timestamp
 	3,  // 2: kiln.v1.Item.project:type_name -> kiln.v1.Project
 	4,  // 3: kiln.v1.Item.feature:type_name -> kiln.v1.Feature
 	5,  // 4: kiln.v1.Item.task:type_name -> kiln.v1.Task
 	1,  // 5: kiln.v1.Feature.status_override:type_name -> kiln.v1.Status
-	6,  // 6: kiln.v1.Feature.depends_on:type_name -> kiln.v1.Dependency
+	8,  // 6: kiln.v1.Feature.depends_on:type_name -> kiln.v1.Dependency
 	1,  // 7: kiln.v1.Task.status:type_name -> kiln.v1.Status
-	6,  // 8: kiln.v1.Task.depends_on:type_name -> kiln.v1.Dependency
-	0,  // 9: kiln.v1.Dependency.block_until:type_name -> kiln.v1.BlockUntil
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	8,  // 8: kiln.v1.Task.depends_on:type_name -> kiln.v1.Dependency
+	6,  // 9: kiln.v1.Task.work_state:type_name -> kiln.v1.WorkState
+	7,  // 10: kiln.v1.WorkState.session:type_name -> kiln.v1.AgentSession
+	9,  // 11: kiln.v1.WorkState.extra:type_name -> kiln.v1.WorkState.ExtraEntry
+	10, // 12: kiln.v1.WorkState.update_time:type_name -> google.protobuf.Timestamp
+	0,  // 13: kiln.v1.Dependency.block_until:type_name -> kiln.v1.BlockUntil
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_kiln_v1_item_proto_init() }
@@ -673,7 +947,7 @@ func file_kiln_v1_item_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kiln_v1_item_proto_rawDesc), len(file_kiln_v1_item_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   5,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

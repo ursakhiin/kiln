@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file kiln/v1/item.proto.
  */
 export const file_kiln_v1_item: GenFile = /*@__PURE__*/
-  fileDesc("ChJraWxuL3YxL2l0ZW0ucHJvdG8SB2tpbG4udjEimwIKBEl0ZW0SCgoCaWQYASABKAkSEAoIcmV2aXNpb24YAiABKAMSDQoFdGl0bGUYAyABKAkSEwoLZGVzY3JpcHRpb24YBCABKAkSLwoLY3JlYXRlX3RpbWUYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC3VwZGF0ZV90aW1lGAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIjCgdwcm9qZWN0GAogASgLMhAua2lsbi52MS5Qcm9qZWN0SAASIwoHZmVhdHVyZRgLIAEoCzIQLmtpbG4udjEuRmVhdHVyZUgAEh0KBHRhc2sYDCABKAsyDS5raWxuLnYxLlRhc2tIAEIGCgRraW5kIgkKB1Byb2plY3QijQEKB0ZlYXR1cmUSEgoKcHJvamVjdF9pZBgBIAEoCRINCgVkcmFmdBgCIAEoCBIoCg9zdGF0dXNfb3ZlcnJpZGUYAyABKA4yDy5raWxuLnYxLlN0YXR1cxIMCgRyYW5rGAQgASgJEicKCmRlcGVuZHNfb24YBSADKAsyEy5raWxuLnYxLkRlcGVuZGVuY3kicgoEVGFzaxISCgpmZWF0dXJlX2lkGAEgASgJEh8KBnN0YXR1cxgCIAEoDjIPLmtpbG4udjEuU3RhdHVzEgwKBHJhbmsYAyABKAkSJwoKZGVwZW5kc19vbhgEIAMoCzITLmtpbG4udjEuRGVwZW5kZW5jeSJHCgpEZXBlbmRlbmN5Eg8KB2l0ZW1faWQYASABKAkSKAoLYmxvY2tfdW50aWwYAiABKA4yEy5raWxuLnYxLkJsb2NrVW50aWwqWgoKQmxvY2tVbnRpbBIbChdCTE9DS19VTlRJTF9VTlNQRUNJRklFRBAAEhQKEEJMT0NLX1VOVElMX0RPTkUQARIZChVCTE9DS19VTlRJTF9JTl9SRVZJRVcQAiqDAQoGU3RhdHVzEhYKElNUQVRVU19VTlNQRUNJRklFRBAAEhAKDFNUQVRVU19EUkFGVBABEhAKDFNUQVRVU19SRUFEWRACEhYKElNUQVRVU19JTl9QUk9HUkVTUxADEhQKEFNUQVRVU19JTl9SRVZJRVcQBBIPCgtTVEFUVVNfRE9ORRAFQoYBCgtjb20ua2lsbi52MUIJSXRlbVByb3RvUAFaL2dpdGh1Yi5jb20vdXJzYWtoaWluL2tpbG4vZ2VuL2dvL2tpbG4vdjE7a2lsbnYxogIDS1hYqgIHS2lsbi5WMcoCB0tpbG5cVjHiAhNLaWxuXFYxXEdQQk1ldGFkYXRh6gIIS2lsbjo6VjFiBnByb3RvMw", [file_google_protobuf_timestamp]);
+  fileDesc("ChJraWxuL3YxL2l0ZW0ucHJvdG8SB2tpbG4udjEimwIKBEl0ZW0SCgoCaWQYASABKAkSEAoIcmV2aXNpb24YAiABKAMSDQoFdGl0bGUYAyABKAkSEwoLZGVzY3JpcHRpb24YBCABKAkSLwoLY3JlYXRlX3RpbWUYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC3VwZGF0ZV90aW1lGAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIjCgdwcm9qZWN0GAogASgLMhAua2lsbi52MS5Qcm9qZWN0SAASIwoHZmVhdHVyZRgLIAEoCzIQLmtpbG4udjEuRmVhdHVyZUgAEh0KBHRhc2sYDCABKAsyDS5raWxuLnYxLlRhc2tIAEIGCgRraW5kIgkKB1Byb2plY3QijQEKB0ZlYXR1cmUSEgoKcHJvamVjdF9pZBgBIAEoCRINCgVkcmFmdBgCIAEoCBIoCg9zdGF0dXNfb3ZlcnJpZGUYAyABKA4yDy5raWxuLnYxLlN0YXR1cxIMCgRyYW5rGAQgASgJEicKCmRlcGVuZHNfb24YBSADKAsyEy5raWxuLnYxLkRlcGVuZGVuY3kimgEKBFRhc2sSEgoKZmVhdHVyZV9pZBgBIAEoCRIfCgZzdGF0dXMYAiABKA4yDy5raWxuLnYxLlN0YXR1cxIMCgRyYW5rGAMgASgJEicKCmRlcGVuZHNfb24YBCADKAsyEy5raWxuLnYxLkRlcGVuZGVuY3kSJgoKd29ya19zdGF0ZRgFIAEoCzISLmtpbG4udjEuV29ya1N0YXRlIuUCCglXb3JrU3RhdGUSDgoGYnJhbmNoGAEgASgJEhUKDXdvcmt0cmVlX3BhdGgYAiABKAkSEwoLYmFzZV9jb21taXQYAyABKAkSEwoLaGVhZF9jb21taXQYBCABKAkSGAoQcHVsbF9yZXF1ZXN0X3VybBgFIAEoCRImCgdzZXNzaW9uGAYgASgLMhUua2lsbi52MS5BZ2VudFNlc3Npb24SEAoIcHJvZ3Jlc3MYByABKAkSDQoFZmlsZXMYCCADKAkSFwoPY3JlZGVudGlhbF9yZWZzGAkgAygJEiwKBWV4dHJhGAogAygLMh0ua2lsbi52MS5Xb3JrU3RhdGUuRXh0cmFFbnRyeRIvCgt1cGRhdGVfdGltZRgLIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAaLAoKRXh0cmFFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIm4KDEFnZW50U2Vzc2lvbhIMCgRob3N0GAEgASgJEhQKDGhvc3RfdmVyc2lvbhgCIAEoCRISCgpzZXNzaW9uX2lkGAMgASgJEhcKD3RyYW5zY3JpcHRfcGF0aBgEIAEoCRINCgVtb2RlbBgFIAEoCSJHCgpEZXBlbmRlbmN5Eg8KB2l0ZW1faWQYASABKAkSKAoLYmxvY2tfdW50aWwYAiABKA4yEy5raWxuLnYxLkJsb2NrVW50aWwqWgoKQmxvY2tVbnRpbBIbChdCTE9DS19VTlRJTF9VTlNQRUNJRklFRBAAEhQKEEJMT0NLX1VOVElMX0RPTkUQARIZChVCTE9DS19VTlRJTF9JTl9SRVZJRVcQAiqDAQoGU3RhdHVzEhYKElNUQVRVU19VTlNQRUNJRklFRBAAEhAKDFNUQVRVU19EUkFGVBABEhAKDFNUQVRVU19SRUFEWRACEhYKElNUQVRVU19JTl9QUk9HUkVTUxADEhQKEFNUQVRVU19JTl9SRVZJRVcQBBIPCgtTVEFUVVNfRE9ORRAFQoYBCgtjb20ua2lsbi52MUIJSXRlbVByb3RvUAFaL2dpdGh1Yi5jb20vdXJzYWtoaWluL2tpbG4vZ2VuL2dvL2tpbG4vdjE7a2lsbnYxogIDS1hYqgIHS2lsbi5WMcoCB0tpbG5cVjHiAhNLaWxuXFYxXEdQQk1ldGFkYXRh6gIIS2lsbjo6VjFiBnByb3RvMw", [file_google_protobuf_timestamp]);
 
 /**
  * Item is a project, feature or task. Each Item is stored as one file,
@@ -206,6 +206,15 @@ export type Task = Message<"kiln.v1.Task"> & {
    * @generated from field: repeated kiln.v1.Dependency depends_on = 4;
    */
   dependsOn: Dependency[];
+
+  /**
+   * What the agents working on this task have recorded so another agent can
+   * continue it. Kept after the task moves on, so the user can find the
+   * branch and PR when reviewing.
+   *
+   * @generated from field: kiln.v1.WorkState work_state = 5;
+   */
+  workState?: WorkState | undefined;
 };
 
 /**
@@ -214,6 +223,153 @@ export type Task = Message<"kiln.v1.Task"> & {
  */
 export const TaskSchema: GenMessage<Task> = /*@__PURE__*/
   messageDesc(file_kiln_v1_item, 3);
+
+/**
+ * WorkState is what an agent records so another agent can continue a task
+ * where it left off. It is committed to git with the task, so it must never
+ * contain credential values; Kiln rejects values that look like secrets.
+ *
+ * @generated from message kiln.v1.WorkState
+ */
+export type WorkState = Message<"kiln.v1.WorkState"> & {
+  /**
+   * Git branch holding the work.
+   *
+   * @generated from field: string branch = 1;
+   */
+  branch: string;
+
+  /**
+   * Path to the git worktree holding the work, if not the main checkout.
+   * Specific to this machine.
+   *
+   * @generated from field: string worktree_path = 2;
+   */
+  worktreePath: string;
+
+  /**
+   * Commit the work started from.
+   *
+   * @generated from field: string base_commit = 3;
+   */
+  baseCommit: string;
+
+  /**
+   * Latest commit made for this task.
+   *
+   * @generated from field: string head_commit = 4;
+   */
+  headCommit: string;
+
+  /**
+   * Pull request for the work, if one exists.
+   *
+   * @generated from field: string pull_request_url = 5;
+   */
+  pullRequestUrl: string;
+
+  /**
+   * The most recent agent session that worked on the task. Earlier sessions
+   * are kept in the item's version history.
+   *
+   * @generated from field: kiln.v1.AgentSession session = 6;
+   */
+  session?: AgentSession | undefined;
+
+  /**
+   * Markdown notes: what's done, what's left, how to verify it, and anything
+   * blocking.
+   *
+   * @generated from field: string progress = 7;
+   */
+  progress: string;
+
+  /**
+   * Repo-relative paths of files the agent created or relies on, such as
+   * plans, specs or notes.
+   *
+   * @generated from field: repeated string files = 8;
+   */
+  files: string[];
+
+  /**
+   * Names of credentials the work needs (e.g. an env var like GITHUB_TOKEN),
+   * never their values.
+   *
+   * @generated from field: repeated string credential_refs = 9;
+   */
+  credentialRefs: string[];
+
+  /**
+   * Anything else a follow-up agent would need, as key-value pairs.
+   *
+   * @generated from field: map<string, string> extra = 10;
+   */
+  extra: { [key: string]: string };
+
+  /**
+   * @generated from field: google.protobuf.Timestamp update_time = 11;
+   */
+  updateTime?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message kiln.v1.WorkState.
+ * Use `create(WorkStateSchema)` to create a new message.
+ */
+export const WorkStateSchema: GenMessage<WorkState> = /*@__PURE__*/
+  messageDesc(file_kiln_v1_item, 4);
+
+/**
+ * AgentSession identifies an agent session so its work can be traced or
+ * resumed.
+ *
+ * @generated from message kiln.v1.AgentSession
+ */
+export type AgentSession = Message<"kiln.v1.AgentSession"> & {
+  /**
+   * The agent host (e.g. "claude-code") and its version. Kiln fills these in
+   * from the MCP connection.
+   *
+   * @generated from field: string host = 1;
+   */
+  host: string;
+
+  /**
+   * @generated from field: string host_version = 2;
+   */
+  hostVersion: string;
+
+  /**
+   * The host's own session ID, if it can resume sessions (e.g. with
+   * `claude --resume <id>`). Specific to this machine.
+   *
+   * @generated from field: string session_id = 3;
+   */
+  sessionId: string;
+
+  /**
+   * Path to the session's transcript, if the host keeps one. A follow-up
+   * agent can read it to see what was tried. Specific to this machine.
+   *
+   * @generated from field: string transcript_path = 4;
+   */
+  transcriptPath: string;
+
+  /**
+   * Model the session ran on.
+   *
+   * @generated from field: string model = 5;
+   */
+  model: string;
+};
+
+/**
+ * Describes the message kiln.v1.AgentSession.
+ * Use `create(AgentSessionSchema)` to create a new message.
+ */
+export const AgentSessionSchema: GenMessage<AgentSession> = /*@__PURE__*/
+  messageDesc(file_kiln_v1_item, 5);
 
 /**
  * Dependency is a link to an item that blocks the item holding it. It is
@@ -243,7 +399,7 @@ export type Dependency = Message<"kiln.v1.Dependency"> & {
  * Use `create(DependencySchema)` to create a new message.
  */
 export const DependencySchema: GenMessage<Dependency> = /*@__PURE__*/
-  messageDesc(file_kiln_v1_item, 4);
+  messageDesc(file_kiln_v1_item, 6);
 
 /**
  * BlockUntil is the status a blocking item must reach before the items that

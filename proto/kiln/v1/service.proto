@@ -1,0 +1,381 @@
+syntax = "proto3";
+
+package kiln.v1;
+
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+import "kiln/options/v1/mcp.proto";
+import "kiln/v1/item.proto";
+
+// KilnService is every operation on Kiln data. The daemon serves it to the
+// GUI and CLI over Connect, and to agents as MCP tools (RPCs marked with
+// kiln.options.v1.mcp_tool).
+//
+// Callers are identified by transport, never by request fields: Connect
+// callers are the user, and each MCP session is a separate agent. This keeps
+// agents from acting as the user.
+//
+// Errors:
+//   ABORTED             base_revision is out of date. The error carries a
+//                       RevisionConflict detail with the current item.
+//   PERMISSION_DENIED   an agent attempted a user-only action (e.g. setting
+//                       STATUS_DONE).
+//   FAILED_PRECONDITION the change would break a rule (e.g. create a
+//                       dependency cycle, or delete an item that has children).
+//   NOT_FOUND           an ID doesn't exist.
+service KilnService {
+  // Create a project, feature or task. Kiln assigns the ID, revision and
+  // timestamps, and adds new features and tasks at the bottom of their
+  // ranking. Features created by agents are always drafts.
+  rpc CreateItem(CreateItemRequest) returns (CreateItemResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "create_item"};
+  }
+
+  // Get one project, feature or task by ID.
+  rpc GetItem(GetItemRequest) returns (GetItemResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "get_item"};
+  }
+
+  // List items matching all of the given filters, in rank order.
+  rpc ListItems(ListItemsRequest) returns (ListItemsResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "list_items"};
+  }
+
+  // Change an item's title, description or parent. Use set_status for
+  // status, and add_dependency/remove_dependency for dependencies.
+  rpc UpdateItem(UpdateItemRequest) returns (UpdateItemResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "update_item"};
+  }
+
+  // Delete an item. Fails if it has children or other items depend on it.
+  // User only.
+  rpc DeleteItem(DeleteItemRequest) returns (DeleteItemResponse);
+
+  // Move a feature within the feature ranking, or a task within its
+  // feature. Used for drag-and-drop. User only.
+  rpc MoveItem(MoveItemRequest) returns (MoveItemResponse);
+
+  // Make an item depend on another feature or task. Fails if it would create
+  // a cycle.
+  rpc AddDependency(AddDependencyRequest) returns (AddDependencyResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "add_dependency"};
+  }
+
+  // Remove a dependency from an item.
+  rpc RemoveDependency(RemoveDependencyRequest) returns (RemoveDependencyResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "remove_dependency"};
+  }
+
+  // Set a task's status, or override a feature's derived status. Agents can
+  // only set task statuses, and only up to STATUS_IN_REVIEW; the user marks
+  // work done.
+  rpc SetStatus(SetStatusRequest) returns (SetStatusResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "set_status"};
+  }
+
+  // Claim the next task to work on and move it to STATUS_IN_PROGRESS. Tasks
+  // another agent started but abandoned come first; otherwise picks the
+  // highest-priority task that is ready, unblocked and unclaimed, preferring
+  // the feature you are already working on. Returns the task's markdown
+  // context, so there is no need to call get_task_context. For an abandoned
+  // task, the context says another agent started it and includes its work
+  // state (branch, worktree, commits, session, progress notes); continue from
+  // there rather than starting over. Returns no task if nothing is available.
+  rpc NextTask(NextTaskRequest) returns (NextTaskResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "next_task"};
+  }
+
+  // Claim a specific task (e.g. one the user asked you to work on) and move it
+  // to STATUS_IN_PROGRESS. Fails if another agent holds the claim.
+  rpc ClaimTask(ClaimTaskRequest) returns (ClaimTaskResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "claim_task"};
+  }
+
+  // Record what another agent would need to continue your task: branch,
+  // worktree, commits, PR, your session ID and transcript path, progress
+  // notes and files. Call it when you start (once you have a branch or
+  // worktree), after each commit, and before you stop. Only the agent holding
+  // the claim, or the user, can call it. It doesn't need a base_revision.
+  rpc UpdateWorkState(UpdateWorkStateRequest) returns (UpdateWorkStateResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "update_work_state"};
+  }
+
+  // Give up your claim on a task you are not going to finish. The task
+  // returns to STATUS_READY. Record your progress with update_work_state
+  // first.
+  rpc ReleaseTask(ReleaseTaskRequest) returns (ReleaseTaskResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "release_task"};
+  }
+
+  // Get the markdown view of a task with its feature and dependency context.
+  rpc GetTaskContext(GetTaskContextRequest) returns (GetTaskContextResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "get_task_context"};
+  }
+
+  // Get every version of an item after the given revision. Use this after a
+  // write is rejected for an outdated revision, to see what changed.
+  rpc GetItemChanges(GetItemChangesRequest) returns (GetItemChangesResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "get_item_changes"};
+  }
+
+  // Stream every item change, for the GUI. Agents get updates through MCP
+  // resource subscriptions instead.
+  rpc WatchItems(WatchItemsRequest) returns (stream WatchItemsResponse);
+}
+
+// ItemInfo is an item plus state Kiln computes rather than stores.
+message ItemInfo {
+  Item item = 1;
+
+  // Effective status: a task's status, or a feature's derived status (see
+  // Feature.status_override). Unset for projects.
+  Status status = 2;
+
+  // True if any dependency is still blocking this item.
+  bool blocked = 3;
+
+  // The agent's claim on this task, if any.
+  Claim claim = 4;
+}
+
+// Claim is an agent's hold on a task. Claims live in daemon memory only. A
+// claim renews whenever its agent calls Kiln. If it expires, the task stays
+// STATUS_IN_PROGRESS but unclaimed, and next_task offers it to the next agent
+// so the work can be resumed.
+message Claim {
+  // The MCP session holding the claim.
+  string agent_id = 1;
+
+  google.protobuf.Timestamp expire_time = 2;
+}
+
+// RevisionConflict is the error detail for ABORTED errors.
+message RevisionConflict {
+  // The item as it is now.
+  ItemInfo current = 1;
+}
+
+// ItemKind filters items by type.
+enum ItemKind {
+  ITEM_KIND_UNSPECIFIED = 0;
+  ITEM_KIND_PROJECT = 1;
+  ITEM_KIND_FEATURE = 2;
+  ITEM_KIND_TASK = 3;
+}
+
+message CreateItemRequest {
+  // The new item. Set title, description and exactly one of project, feature
+  // or task with its parent ID. Leave id, revision, timestamps and rank
+  // unset.
+  Item item = 1;
+}
+
+message CreateItemResponse {
+  ItemInfo item = 1;
+}
+
+message GetItemRequest {
+  // ID of the item.
+  string id = 1;
+}
+
+message GetItemResponse {
+  ItemInfo item = 1;
+}
+
+message ListItemsRequest {
+  // Only items of this kind. Unset for all kinds.
+  ItemKind kind = 1;
+
+  // Only features in this project, and tasks in those features.
+  string project_id = 2;
+
+  // Only tasks in this feature.
+  string feature_id = 3;
+
+  // Only items with one of these effective statuses. Empty for all.
+  repeated Status statuses = 4;
+}
+
+message ListItemsResponse {
+  // Features in feature-rank order; tasks grouped by feature, then task rank.
+  repeated ItemInfo items = 1;
+}
+
+message UpdateItemRequest {
+  // The item with its id and the new field values.
+  Item item = 1;
+
+  // The revision your change is based on.
+  int64 base_revision = 2;
+
+  // Which fields to change: "title", "description", "feature.project_id",
+  // "feature.draft" or "task.feature_id". Agents can't set "feature.draft"
+  // to false; the user decides when an idea is ready.
+  google.protobuf.FieldMask update_mask = 3;
+}
+
+message UpdateItemResponse {
+  ItemInfo item = 1;
+}
+
+message DeleteItemRequest {
+  string id = 1;
+  int64 base_revision = 2;
+}
+
+message DeleteItemResponse {}
+
+message MoveItemRequest {
+  string id = 1;
+  int64 base_revision = 2;
+
+  // The item's new neighbor. Features move among all features; tasks move
+  // among the tasks of their feature.
+  oneof position {
+    // Place directly before this item.
+    string before_id = 3;
+    // Place directly after this item.
+    string after_id = 4;
+  }
+}
+
+message MoveItemResponse {
+  ItemInfo item = 1;
+}
+
+message AddDependencyRequest {
+  // ID of the item that will be blocked.
+  string item_id = 1;
+
+  // The revision of the blocked item your change is based on.
+  int64 base_revision = 2;
+
+  // The blocking item, and whether it blocks until done or until in review.
+  Dependency dependency = 3;
+}
+
+message AddDependencyResponse {
+  ItemInfo item = 1;
+}
+
+message RemoveDependencyRequest {
+  // ID of the blocked item.
+  string item_id = 1;
+
+  // The revision of the blocked item your change is based on.
+  int64 base_revision = 2;
+
+  // ID of the blocking item to remove.
+  string depends_on_id = 3;
+}
+
+message RemoveDependencyResponse {
+  ItemInfo item = 1;
+}
+
+message SetStatusRequest {
+  // ID of the task or feature.
+  string id = 1;
+
+  // The revision your change is based on.
+  int64 base_revision = 2;
+
+  // The new status. For a feature, this sets status_override, and
+  // STATUS_UNSPECIFIED clears it.
+  Status status = 3;
+}
+
+message SetStatusResponse {
+  ItemInfo item = 1;
+}
+
+message NextTaskRequest {
+  // Only consider tasks in this project. Unset for any project.
+  string project_id = 1;
+}
+
+message NextTaskResponse {
+  // The claimed task. Unset if no task is available.
+  ItemInfo task = 1;
+
+  // The task's markdown context, as returned by get_task_context.
+  string context = 2;
+}
+
+message ClaimTaskRequest {
+  // ID of the task to claim.
+  string id = 1;
+}
+
+message ClaimTaskResponse {
+  ItemInfo task = 1;
+
+  // The task's markdown context, as returned by get_task_context.
+  string context = 2;
+}
+
+message UpdateWorkStateRequest {
+  // ID of the task.
+  string id = 1;
+
+  // The fields to record. Only the fields named in update_mask are changed.
+  WorkState work_state = 2;
+
+  // Which work_state fields to change (e.g. "branch", "head_commit",
+  // "progress", "session"). Empty changes every field. Kiln sets
+  // session.host, session.host_version and update_time itself.
+  google.protobuf.FieldMask update_mask = 3;
+}
+
+message UpdateWorkStateResponse {
+  ItemInfo task = 1;
+}
+
+message ReleaseTaskRequest {
+  // ID of the task to release.
+  string id = 1;
+}
+
+message ReleaseTaskResponse {
+  ItemInfo task = 1;
+}
+
+message GetTaskContextRequest {
+  // ID of the task.
+  string id = 1;
+}
+
+message GetTaskContextResponse {
+  // Markdown with the task, its feature, its dependencies and its work
+  // state. Includes the task's revision.
+  string context = 1;
+
+  // The task's current revision; use it as base_revision for your next write.
+  int64 revision = 2;
+}
+
+message GetItemChangesRequest {
+  // ID of the item.
+  string id = 1;
+
+  // Return versions after this revision.
+  int64 since_revision = 2;
+}
+
+message GetItemChangesResponse {
+  // The item at each revision after since_revision, oldest first. The last
+  // one is the current version.
+  repeated Item versions = 1;
+}
+
+message WatchItemsRequest {}
+
+message WatchItemsResponse {
+  oneof event {
+    // An item was created or changed.
+    ItemInfo updated = 1;
+    // ID of an item that was deleted.
+    string deleted_id = 2;
+  }
+}

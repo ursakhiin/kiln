@@ -84,6 +84,73 @@ message Task {
   // Features or tasks, in any project, that block this task. Cycles are
   // rejected.
   repeated Dependency depends_on = 4;
+
+  // What the agents working on this task have recorded so another agent can
+  // continue it. Kept after the task moves on, so the user can find the
+  // branch and PR when reviewing.
+  WorkState work_state = 5;
+}
+
+// WorkState is what an agent records so another agent can continue a task
+// where it left off. It is committed to git with the task, so it must never
+// contain credential values; Kiln rejects values that look like secrets.
+message WorkState {
+  // Git branch holding the work.
+  string branch = 1;
+
+  // Path to the git worktree holding the work, if not the main checkout.
+  // Specific to this machine.
+  string worktree_path = 2;
+
+  // Commit the work started from.
+  string base_commit = 3;
+
+  // Latest commit made for this task.
+  string head_commit = 4;
+
+  // Pull request for the work, if one exists.
+  string pull_request_url = 5;
+
+  // The most recent agent session that worked on the task. Earlier sessions
+  // are kept in the item's version history.
+  AgentSession session = 6;
+
+  // Markdown notes: what's done, what's left, how to verify it, and anything
+  // blocking.
+  string progress = 7;
+
+  // Repo-relative paths of files the agent created or relies on, such as
+  // plans, specs or notes.
+  repeated string files = 8;
+
+  // Names of credentials the work needs (e.g. an env var like GITHUB_TOKEN),
+  // never their values.
+  repeated string credential_refs = 9;
+
+  // Anything else a follow-up agent would need, as key-value pairs.
+  map<string, string> extra = 10;
+
+  google.protobuf.Timestamp update_time = 11;
+}
+
+// AgentSession identifies an agent session so its work can be traced or
+// resumed.
+message AgentSession {
+  // The agent host (e.g. "claude-code") and its version. Kiln fills these in
+  // from the MCP connection.
+  string host = 1;
+  string host_version = 2;
+
+  // The host's own session ID, if it can resume sessions (e.g. with
+  // `claude --resume <id>`). Specific to this machine.
+  string session_id = 3;
+
+  // Path to the session's transcript, if the host keeps one. A follow-up
+  // agent can read it to see what was tried. Specific to this machine.
+  string transcript_path = 4;
+
+  // Model the session ran on.
+  string model = 5;
 }
 
 // Dependency is a link to an item that blocks the item holding it. It is

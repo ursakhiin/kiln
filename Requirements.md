@@ -40,10 +40,19 @@ As an agent, I want to ask Kiln for the next task to work on and claim it so oth
 * `next_task` returns a `ready` task that isn't blocked or claimed, ordered by feature rank and then task rank, with **feature affinity**:
   * An agent prefers the next task in the feature it is working on.
   * Other agents prefer features no agent is working on, which spreads agents out and reduces collisions in the same code.
-* **Task claiming:** an agent claims a task when it starts. Claimed tasks are skipped by `next_task`, and claims expire if the agent stops responding.
+* **Task claiming:** an agent claims a task when it starts. Claimed tasks are skipped by `next_task`.
+  * A claim renews whenever its agent calls Kiln, and expires if the agent stops.
+  * An expired claim leaves the task `in progress` but unclaimed. `next_task` offers such tasks first, and their context warns that another agent may have left partial work.
+* **Work state:** agents record what another agent would need to continue a task (`update_work_state`).
+  * Typed fields: branch, worktree path, base and latest commits, PR URL, agent session (host, session ID, transcript path, model), progress notes, and related files.
+  * Credentials are recorded only by name, never by value. Kiln rejects values that look like secrets, because work state is committed with the task.
+  * A key-value map holds anything else.
+  * Agents update it when they start, after each commit, and before they stop. A follow-up agent that picks up an abandoned task gets it in the task's context.
+  * Kiln fills in the agent host and version from the MCP connection.
+* Only the user changes rankings or deletes items. Agents can't promote draft features, override a feature's status, or mark work `done`.
 * **Staleness:**
   * Every item has a revision number, and each markdown view includes it.
-  * An MCP write based on an outdated revision is rejected with a description of what changed. A `changes_since(revision)` tool lets the agent catch up.
+  * An MCP write based on an outdated revision is rejected with a description of what changed. A `get_item_changes(id, since_revision)` tool lets the agent catch up.
   * Kiln also sends MCP resource-update notifications to clients that subscribe. This is optional; the revision check is the guarantee.
 
 # Architecture
