@@ -1715,7 +1715,7 @@ type GetItemChangesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// ID of the item.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Return versions after this revision.
+	// Return changes after this revision.
 	SinceRevision int64 `protobuf:"varint,2,opt,name=since_revision,json=sinceRevision,proto3" json:"since_revision,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1767,9 +1767,9 @@ func (x *GetItemChangesRequest) GetSinceRevision() int64 {
 
 type GetItemChangesResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The item at each revision after since_revision, oldest first. The last
-	// one is the current version.
-	Versions      []*Item `protobuf:"bytes,1,rep,name=versions,proto3" json:"versions,omitempty"`
+	// Change entries after since_revision, oldest first. The last snapshot is
+	// the current version.
+	Changes       []*HistoryEntry `protobuf:"bytes,1,rep,name=changes,proto3" json:"changes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1804,9 +1804,322 @@ func (*GetItemChangesResponse) Descriptor() ([]byte, []int) {
 	return file_kiln_v1_service_proto_rawDescGZIP(), []int{32}
 }
 
-func (x *GetItemChangesResponse) GetVersions() []*Item {
+func (x *GetItemChangesResponse) GetChanges() []*HistoryEntry {
 	if x != nil {
-		return x.Versions
+		return x.Changes
+	}
+	return nil
+}
+
+type ListHistoryRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// ID of the item.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Also include the history of the item's children (a feature's tasks, or a
+	// project's features and their tasks).
+	IncludeChildren bool `protobuf:"varint,2,opt,name=include_children,json=includeChildren,proto3" json:"include_children,omitempty"`
+	// Only decision notes, without changes.
+	NotesOnly     bool `protobuf:"varint,3,opt,name=notes_only,json=notesOnly,proto3" json:"notes_only,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListHistoryRequest) Reset() {
+	*x = ListHistoryRequest{}
+	mi := &file_kiln_v1_service_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListHistoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListHistoryRequest) ProtoMessage() {}
+
+func (x *ListHistoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kiln_v1_service_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListHistoryRequest.ProtoReflect.Descriptor instead.
+func (*ListHistoryRequest) Descriptor() ([]byte, []int) {
+	return file_kiln_v1_service_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ListHistoryRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ListHistoryRequest) GetIncludeChildren() bool {
+	if x != nil {
+		return x.IncludeChildren
+	}
+	return false
+}
+
+func (x *ListHistoryRequest) GetNotesOnly() bool {
+	if x != nil {
+		return x.NotesOnly
+	}
+	return false
+}
+
+type ListHistoryResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// History entries, oldest first.
+	Entries       []*HistoryEntry `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListHistoryResponse) Reset() {
+	*x = ListHistoryResponse{}
+	mi := &file_kiln_v1_service_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListHistoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListHistoryResponse) ProtoMessage() {}
+
+func (x *ListHistoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kiln_v1_service_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListHistoryResponse.ProtoReflect.Descriptor instead.
+func (*ListHistoryResponse) Descriptor() ([]byte, []int) {
+	return file_kiln_v1_service_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ListHistoryResponse) GetEntries() []*HistoryEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+type AddDecisionNoteRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// ID of the item the decision is about.
+	ItemId string `protobuf:"bytes,1,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	// The note, in markdown: what was decided and why.
+	Body          string `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddDecisionNoteRequest) Reset() {
+	*x = AddDecisionNoteRequest{}
+	mi := &file_kiln_v1_service_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddDecisionNoteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddDecisionNoteRequest) ProtoMessage() {}
+
+func (x *AddDecisionNoteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kiln_v1_service_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddDecisionNoteRequest.ProtoReflect.Descriptor instead.
+func (*AddDecisionNoteRequest) Descriptor() ([]byte, []int) {
+	return file_kiln_v1_service_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *AddDecisionNoteRequest) GetItemId() string {
+	if x != nil {
+		return x.ItemId
+	}
+	return ""
+}
+
+func (x *AddDecisionNoteRequest) GetBody() string {
+	if x != nil {
+		return x.Body
+	}
+	return ""
+}
+
+type AddDecisionNoteResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entry         *HistoryEntry          `protobuf:"bytes,1,opt,name=entry,proto3" json:"entry,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddDecisionNoteResponse) Reset() {
+	*x = AddDecisionNoteResponse{}
+	mi := &file_kiln_v1_service_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddDecisionNoteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddDecisionNoteResponse) ProtoMessage() {}
+
+func (x *AddDecisionNoteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kiln_v1_service_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddDecisionNoteResponse.ProtoReflect.Descriptor instead.
+func (*AddDecisionNoteResponse) Descriptor() ([]byte, []int) {
+	return file_kiln_v1_service_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *AddDecisionNoteResponse) GetEntry() *HistoryEntry {
+	if x != nil {
+		return x.Entry
+	}
+	return nil
+}
+
+type RestoreVersionRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The revision your change is based on.
+	BaseRevision int64 `protobuf:"varint,2,opt,name=base_revision,json=baseRevision,proto3" json:"base_revision,omitempty"`
+	// The earlier revision to restore.
+	Revision      int64 `protobuf:"varint,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreVersionRequest) Reset() {
+	*x = RestoreVersionRequest{}
+	mi := &file_kiln_v1_service_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreVersionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreVersionRequest) ProtoMessage() {}
+
+func (x *RestoreVersionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kiln_v1_service_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreVersionRequest.ProtoReflect.Descriptor instead.
+func (*RestoreVersionRequest) Descriptor() ([]byte, []int) {
+	return file_kiln_v1_service_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *RestoreVersionRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RestoreVersionRequest) GetBaseRevision() int64 {
+	if x != nil {
+		return x.BaseRevision
+	}
+	return 0
+}
+
+func (x *RestoreVersionRequest) GetRevision() int64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+type RestoreVersionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Item          *ItemInfo              `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreVersionResponse) Reset() {
+	*x = RestoreVersionResponse{}
+	mi := &file_kiln_v1_service_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreVersionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreVersionResponse) ProtoMessage() {}
+
+func (x *RestoreVersionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kiln_v1_service_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreVersionResponse.ProtoReflect.Descriptor instead.
+func (*RestoreVersionResponse) Descriptor() ([]byte, []int) {
+	return file_kiln_v1_service_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *RestoreVersionResponse) GetItem() *ItemInfo {
+	if x != nil {
+		return x.Item
 	}
 	return nil
 }
@@ -1819,7 +2132,7 @@ type WatchItemsRequest struct {
 
 func (x *WatchItemsRequest) Reset() {
 	*x = WatchItemsRequest{}
-	mi := &file_kiln_v1_service_proto_msgTypes[33]
+	mi := &file_kiln_v1_service_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1831,7 +2144,7 @@ func (x *WatchItemsRequest) String() string {
 func (*WatchItemsRequest) ProtoMessage() {}
 
 func (x *WatchItemsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kiln_v1_service_proto_msgTypes[33]
+	mi := &file_kiln_v1_service_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1844,7 +2157,7 @@ func (x *WatchItemsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchItemsRequest.ProtoReflect.Descriptor instead.
 func (*WatchItemsRequest) Descriptor() ([]byte, []int) {
-	return file_kiln_v1_service_proto_rawDescGZIP(), []int{33}
+	return file_kiln_v1_service_proto_rawDescGZIP(), []int{39}
 }
 
 type WatchItemsResponse struct {
@@ -1860,7 +2173,7 @@ type WatchItemsResponse struct {
 
 func (x *WatchItemsResponse) Reset() {
 	*x = WatchItemsResponse{}
-	mi := &file_kiln_v1_service_proto_msgTypes[34]
+	mi := &file_kiln_v1_service_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1872,7 +2185,7 @@ func (x *WatchItemsResponse) String() string {
 func (*WatchItemsResponse) ProtoMessage() {}
 
 func (x *WatchItemsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kiln_v1_service_proto_msgTypes[34]
+	mi := &file_kiln_v1_service_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1885,7 +2198,7 @@ func (x *WatchItemsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchItemsResponse.ProtoReflect.Descriptor instead.
 func (*WatchItemsResponse) Descriptor() ([]byte, []int) {
-	return file_kiln_v1_service_proto_rawDescGZIP(), []int{34}
+	return file_kiln_v1_service_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *WatchItemsResponse) GetEvent() isWatchItemsResponse_Event {
@@ -1935,7 +2248,7 @@ var File_kiln_v1_service_proto protoreflect.FileDescriptor
 
 const file_kiln_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x15kiln/v1/service.proto\x12\akiln.v1\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19kiln/options/v1/mcp.proto\x1a\x12kiln/v1/item.proto\"\x96\x01\n" +
+	"\x15kiln/v1/service.proto\x12\akiln.v1\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19kiln/options/v1/mcp.proto\x1a\x15kiln/v1/history.proto\x1a\x12kiln/v1/item.proto\"\x96\x01\n" +
 	"\bItemInfo\x12!\n" +
 	"\x04item\x18\x01 \x01(\v2\r.kiln.v1.ItemR\x04item\x12'\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x0f.kiln.v1.StatusR\x06status\x12\x18\n" +
@@ -2034,9 +2347,27 @@ const file_kiln_v1_service_proto_rawDesc = "" +
 	"\brevision\x18\x02 \x01(\x03R\brevision\"N\n" +
 	"\x15GetItemChangesRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
-	"\x0esince_revision\x18\x02 \x01(\x03R\rsinceRevision\"C\n" +
-	"\x16GetItemChangesResponse\x12)\n" +
-	"\bversions\x18\x01 \x03(\v2\r.kiln.v1.ItemR\bversions\"\x13\n" +
+	"\x0esince_revision\x18\x02 \x01(\x03R\rsinceRevision\"I\n" +
+	"\x16GetItemChangesResponse\x12/\n" +
+	"\achanges\x18\x01 \x03(\v2\x15.kiln.v1.HistoryEntryR\achanges\"n\n" +
+	"\x12ListHistoryRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
+	"\x10include_children\x18\x02 \x01(\bR\x0fincludeChildren\x12\x1d\n" +
+	"\n" +
+	"notes_only\x18\x03 \x01(\bR\tnotesOnly\"F\n" +
+	"\x13ListHistoryResponse\x12/\n" +
+	"\aentries\x18\x01 \x03(\v2\x15.kiln.v1.HistoryEntryR\aentries\"E\n" +
+	"\x16AddDecisionNoteRequest\x12\x17\n" +
+	"\aitem_id\x18\x01 \x01(\tR\x06itemId\x12\x12\n" +
+	"\x04body\x18\x02 \x01(\tR\x04body\"F\n" +
+	"\x17AddDecisionNoteResponse\x12+\n" +
+	"\x05entry\x18\x01 \x01(\v2\x15.kiln.v1.HistoryEntryR\x05entry\"h\n" +
+	"\x15RestoreVersionRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
+	"\rbase_revision\x18\x02 \x01(\x03R\fbaseRevision\x12\x1a\n" +
+	"\brevision\x18\x03 \x01(\x03R\brevision\"?\n" +
+	"\x16RestoreVersionResponse\x12%\n" +
+	"\x04item\x18\x01 \x01(\v2\x11.kiln.v1.ItemInfoR\x04item\"\x13\n" +
 	"\x11WatchItemsRequest\"m\n" +
 	"\x12WatchItemsResponse\x12-\n" +
 	"\aupdated\x18\x01 \x01(\v2\x11.kiln.v1.ItemInfoH\x00R\aupdated\x12\x1f\n" +
@@ -2047,7 +2378,7 @@ const file_kiln_v1_service_proto_rawDesc = "" +
 	"\x15ITEM_KIND_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11ITEM_KIND_PROJECT\x10\x01\x12\x15\n" +
 	"\x11ITEM_KIND_FEATURE\x10\x02\x12\x12\n" +
-	"\x0eITEM_KIND_TASK\x10\x032\xaf\v\n" +
+	"\x0eITEM_KIND_TASK\x10\x032\xcf\r\n" +
 	"\vKilnService\x12X\n" +
 	"\n" +
 	"CreateItem\x12\x1a.kiln.v1.CreateItemRequest\x1a\x1b.kiln.v1.CreateItemResponse\"\x11\x82\xb5\x18\r\n" +
@@ -2083,7 +2414,12 @@ const file_kiln_v1_service_proto_rawDesc = "" +
 	"\x0eGetTaskContext\x12\x1e.kiln.v1.GetTaskContextRequest\x1a\x1f.kiln.v1.GetTaskContextResponse\"\x16\x82\xb5\x18\x12\n" +
 	"\x10get_task_context\x12i\n" +
 	"\x0eGetItemChanges\x12\x1e.kiln.v1.GetItemChangesRequest\x1a\x1f.kiln.v1.GetItemChangesResponse\"\x16\x82\xb5\x18\x12\n" +
-	"\x10get_item_changes\x12G\n" +
+	"\x10get_item_changes\x12\\\n" +
+	"\vListHistory\x12\x1b.kiln.v1.ListHistoryRequest\x1a\x1c.kiln.v1.ListHistoryResponse\"\x12\x82\xb5\x18\x0e\n" +
+	"\flist_history\x12m\n" +
+	"\x0fAddDecisionNote\x12\x1f.kiln.v1.AddDecisionNoteRequest\x1a .kiln.v1.AddDecisionNoteResponse\"\x17\x82\xb5\x18\x13\n" +
+	"\x11add_decision_note\x12Q\n" +
+	"\x0eRestoreVersion\x12\x1e.kiln.v1.RestoreVersionRequest\x1a\x1f.kiln.v1.RestoreVersionResponse\x12G\n" +
 	"\n" +
 	"WatchItems\x12\x1a.kiln.v1.WatchItemsRequest\x1a\x1b.kiln.v1.WatchItemsResponse0\x01B\x89\x01\n" +
 	"\vcom.kiln.v1B\fServiceProtoP\x01Z/github.com/ursakhiin/kiln/gen/go/kiln/v1;kilnv1\xa2\x02\x03KXX\xaa\x02\aKiln.V1\xca\x02\aKiln\\V1\xe2\x02\x13Kiln\\V1\\GPBMetadata\xea\x02\bKiln::V1b\x06proto3"
@@ -2101,7 +2437,7 @@ func file_kiln_v1_service_proto_rawDescGZIP() []byte {
 }
 
 var file_kiln_v1_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_kiln_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_kiln_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_kiln_v1_service_proto_goTypes = []any{
 	(ItemKind)(0),                    // 0: kiln.v1.ItemKind
 	(*ItemInfo)(nil),                 // 1: kiln.v1.ItemInfo
@@ -2137,81 +2473,97 @@ var file_kiln_v1_service_proto_goTypes = []any{
 	(*GetTaskContextResponse)(nil),   // 31: kiln.v1.GetTaskContextResponse
 	(*GetItemChangesRequest)(nil),    // 32: kiln.v1.GetItemChangesRequest
 	(*GetItemChangesResponse)(nil),   // 33: kiln.v1.GetItemChangesResponse
-	(*WatchItemsRequest)(nil),        // 34: kiln.v1.WatchItemsRequest
-	(*WatchItemsResponse)(nil),       // 35: kiln.v1.WatchItemsResponse
-	(*Item)(nil),                     // 36: kiln.v1.Item
-	(Status)(0),                      // 37: kiln.v1.Status
-	(*timestamppb.Timestamp)(nil),    // 38: google.protobuf.Timestamp
-	(*fieldmaskpb.FieldMask)(nil),    // 39: google.protobuf.FieldMask
-	(*Dependency)(nil),               // 40: kiln.v1.Dependency
-	(*WorkState)(nil),                // 41: kiln.v1.WorkState
+	(*ListHistoryRequest)(nil),       // 34: kiln.v1.ListHistoryRequest
+	(*ListHistoryResponse)(nil),      // 35: kiln.v1.ListHistoryResponse
+	(*AddDecisionNoteRequest)(nil),   // 36: kiln.v1.AddDecisionNoteRequest
+	(*AddDecisionNoteResponse)(nil),  // 37: kiln.v1.AddDecisionNoteResponse
+	(*RestoreVersionRequest)(nil),    // 38: kiln.v1.RestoreVersionRequest
+	(*RestoreVersionResponse)(nil),   // 39: kiln.v1.RestoreVersionResponse
+	(*WatchItemsRequest)(nil),        // 40: kiln.v1.WatchItemsRequest
+	(*WatchItemsResponse)(nil),       // 41: kiln.v1.WatchItemsResponse
+	(*Item)(nil),                     // 42: kiln.v1.Item
+	(Status)(0),                      // 43: kiln.v1.Status
+	(*timestamppb.Timestamp)(nil),    // 44: google.protobuf.Timestamp
+	(*fieldmaskpb.FieldMask)(nil),    // 45: google.protobuf.FieldMask
+	(*Dependency)(nil),               // 46: kiln.v1.Dependency
+	(*WorkState)(nil),                // 47: kiln.v1.WorkState
+	(*HistoryEntry)(nil),             // 48: kiln.v1.HistoryEntry
 }
 var file_kiln_v1_service_proto_depIdxs = []int32{
-	36, // 0: kiln.v1.ItemInfo.item:type_name -> kiln.v1.Item
-	37, // 1: kiln.v1.ItemInfo.status:type_name -> kiln.v1.Status
+	42, // 0: kiln.v1.ItemInfo.item:type_name -> kiln.v1.Item
+	43, // 1: kiln.v1.ItemInfo.status:type_name -> kiln.v1.Status
 	2,  // 2: kiln.v1.ItemInfo.claim:type_name -> kiln.v1.Claim
-	38, // 3: kiln.v1.Claim.expire_time:type_name -> google.protobuf.Timestamp
+	44, // 3: kiln.v1.Claim.expire_time:type_name -> google.protobuf.Timestamp
 	1,  // 4: kiln.v1.RevisionConflict.current:type_name -> kiln.v1.ItemInfo
-	36, // 5: kiln.v1.CreateItemRequest.item:type_name -> kiln.v1.Item
+	42, // 5: kiln.v1.CreateItemRequest.item:type_name -> kiln.v1.Item
 	1,  // 6: kiln.v1.CreateItemResponse.item:type_name -> kiln.v1.ItemInfo
 	1,  // 7: kiln.v1.GetItemResponse.item:type_name -> kiln.v1.ItemInfo
 	0,  // 8: kiln.v1.ListItemsRequest.kind:type_name -> kiln.v1.ItemKind
-	37, // 9: kiln.v1.ListItemsRequest.statuses:type_name -> kiln.v1.Status
+	43, // 9: kiln.v1.ListItemsRequest.statuses:type_name -> kiln.v1.Status
 	1,  // 10: kiln.v1.ListItemsResponse.items:type_name -> kiln.v1.ItemInfo
-	36, // 11: kiln.v1.UpdateItemRequest.item:type_name -> kiln.v1.Item
-	39, // 12: kiln.v1.UpdateItemRequest.update_mask:type_name -> google.protobuf.FieldMask
+	42, // 11: kiln.v1.UpdateItemRequest.item:type_name -> kiln.v1.Item
+	45, // 12: kiln.v1.UpdateItemRequest.update_mask:type_name -> google.protobuf.FieldMask
 	1,  // 13: kiln.v1.UpdateItemResponse.item:type_name -> kiln.v1.ItemInfo
 	1,  // 14: kiln.v1.MoveItemResponse.item:type_name -> kiln.v1.ItemInfo
-	40, // 15: kiln.v1.AddDependencyRequest.dependency:type_name -> kiln.v1.Dependency
+	46, // 15: kiln.v1.AddDependencyRequest.dependency:type_name -> kiln.v1.Dependency
 	1,  // 16: kiln.v1.AddDependencyResponse.item:type_name -> kiln.v1.ItemInfo
 	1,  // 17: kiln.v1.RemoveDependencyResponse.item:type_name -> kiln.v1.ItemInfo
-	37, // 18: kiln.v1.SetStatusRequest.status:type_name -> kiln.v1.Status
+	43, // 18: kiln.v1.SetStatusRequest.status:type_name -> kiln.v1.Status
 	1,  // 19: kiln.v1.SetStatusResponse.item:type_name -> kiln.v1.ItemInfo
 	1,  // 20: kiln.v1.NextTaskResponse.task:type_name -> kiln.v1.ItemInfo
 	1,  // 21: kiln.v1.ClaimTaskResponse.task:type_name -> kiln.v1.ItemInfo
-	41, // 22: kiln.v1.UpdateWorkStateRequest.work_state:type_name -> kiln.v1.WorkState
-	39, // 23: kiln.v1.UpdateWorkStateRequest.update_mask:type_name -> google.protobuf.FieldMask
+	47, // 22: kiln.v1.UpdateWorkStateRequest.work_state:type_name -> kiln.v1.WorkState
+	45, // 23: kiln.v1.UpdateWorkStateRequest.update_mask:type_name -> google.protobuf.FieldMask
 	1,  // 24: kiln.v1.UpdateWorkStateResponse.task:type_name -> kiln.v1.ItemInfo
 	1,  // 25: kiln.v1.ReleaseTaskResponse.task:type_name -> kiln.v1.ItemInfo
-	36, // 26: kiln.v1.GetItemChangesResponse.versions:type_name -> kiln.v1.Item
-	1,  // 27: kiln.v1.WatchItemsResponse.updated:type_name -> kiln.v1.ItemInfo
-	4,  // 28: kiln.v1.KilnService.CreateItem:input_type -> kiln.v1.CreateItemRequest
-	6,  // 29: kiln.v1.KilnService.GetItem:input_type -> kiln.v1.GetItemRequest
-	8,  // 30: kiln.v1.KilnService.ListItems:input_type -> kiln.v1.ListItemsRequest
-	10, // 31: kiln.v1.KilnService.UpdateItem:input_type -> kiln.v1.UpdateItemRequest
-	12, // 32: kiln.v1.KilnService.DeleteItem:input_type -> kiln.v1.DeleteItemRequest
-	14, // 33: kiln.v1.KilnService.MoveItem:input_type -> kiln.v1.MoveItemRequest
-	16, // 34: kiln.v1.KilnService.AddDependency:input_type -> kiln.v1.AddDependencyRequest
-	18, // 35: kiln.v1.KilnService.RemoveDependency:input_type -> kiln.v1.RemoveDependencyRequest
-	20, // 36: kiln.v1.KilnService.SetStatus:input_type -> kiln.v1.SetStatusRequest
-	22, // 37: kiln.v1.KilnService.NextTask:input_type -> kiln.v1.NextTaskRequest
-	24, // 38: kiln.v1.KilnService.ClaimTask:input_type -> kiln.v1.ClaimTaskRequest
-	26, // 39: kiln.v1.KilnService.UpdateWorkState:input_type -> kiln.v1.UpdateWorkStateRequest
-	28, // 40: kiln.v1.KilnService.ReleaseTask:input_type -> kiln.v1.ReleaseTaskRequest
-	30, // 41: kiln.v1.KilnService.GetTaskContext:input_type -> kiln.v1.GetTaskContextRequest
-	32, // 42: kiln.v1.KilnService.GetItemChanges:input_type -> kiln.v1.GetItemChangesRequest
-	34, // 43: kiln.v1.KilnService.WatchItems:input_type -> kiln.v1.WatchItemsRequest
-	5,  // 44: kiln.v1.KilnService.CreateItem:output_type -> kiln.v1.CreateItemResponse
-	7,  // 45: kiln.v1.KilnService.GetItem:output_type -> kiln.v1.GetItemResponse
-	9,  // 46: kiln.v1.KilnService.ListItems:output_type -> kiln.v1.ListItemsResponse
-	11, // 47: kiln.v1.KilnService.UpdateItem:output_type -> kiln.v1.UpdateItemResponse
-	13, // 48: kiln.v1.KilnService.DeleteItem:output_type -> kiln.v1.DeleteItemResponse
-	15, // 49: kiln.v1.KilnService.MoveItem:output_type -> kiln.v1.MoveItemResponse
-	17, // 50: kiln.v1.KilnService.AddDependency:output_type -> kiln.v1.AddDependencyResponse
-	19, // 51: kiln.v1.KilnService.RemoveDependency:output_type -> kiln.v1.RemoveDependencyResponse
-	21, // 52: kiln.v1.KilnService.SetStatus:output_type -> kiln.v1.SetStatusResponse
-	23, // 53: kiln.v1.KilnService.NextTask:output_type -> kiln.v1.NextTaskResponse
-	25, // 54: kiln.v1.KilnService.ClaimTask:output_type -> kiln.v1.ClaimTaskResponse
-	27, // 55: kiln.v1.KilnService.UpdateWorkState:output_type -> kiln.v1.UpdateWorkStateResponse
-	29, // 56: kiln.v1.KilnService.ReleaseTask:output_type -> kiln.v1.ReleaseTaskResponse
-	31, // 57: kiln.v1.KilnService.GetTaskContext:output_type -> kiln.v1.GetTaskContextResponse
-	33, // 58: kiln.v1.KilnService.GetItemChanges:output_type -> kiln.v1.GetItemChangesResponse
-	35, // 59: kiln.v1.KilnService.WatchItems:output_type -> kiln.v1.WatchItemsResponse
-	44, // [44:60] is the sub-list for method output_type
-	28, // [28:44] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	48, // 26: kiln.v1.GetItemChangesResponse.changes:type_name -> kiln.v1.HistoryEntry
+	48, // 27: kiln.v1.ListHistoryResponse.entries:type_name -> kiln.v1.HistoryEntry
+	48, // 28: kiln.v1.AddDecisionNoteResponse.entry:type_name -> kiln.v1.HistoryEntry
+	1,  // 29: kiln.v1.RestoreVersionResponse.item:type_name -> kiln.v1.ItemInfo
+	1,  // 30: kiln.v1.WatchItemsResponse.updated:type_name -> kiln.v1.ItemInfo
+	4,  // 31: kiln.v1.KilnService.CreateItem:input_type -> kiln.v1.CreateItemRequest
+	6,  // 32: kiln.v1.KilnService.GetItem:input_type -> kiln.v1.GetItemRequest
+	8,  // 33: kiln.v1.KilnService.ListItems:input_type -> kiln.v1.ListItemsRequest
+	10, // 34: kiln.v1.KilnService.UpdateItem:input_type -> kiln.v1.UpdateItemRequest
+	12, // 35: kiln.v1.KilnService.DeleteItem:input_type -> kiln.v1.DeleteItemRequest
+	14, // 36: kiln.v1.KilnService.MoveItem:input_type -> kiln.v1.MoveItemRequest
+	16, // 37: kiln.v1.KilnService.AddDependency:input_type -> kiln.v1.AddDependencyRequest
+	18, // 38: kiln.v1.KilnService.RemoveDependency:input_type -> kiln.v1.RemoveDependencyRequest
+	20, // 39: kiln.v1.KilnService.SetStatus:input_type -> kiln.v1.SetStatusRequest
+	22, // 40: kiln.v1.KilnService.NextTask:input_type -> kiln.v1.NextTaskRequest
+	24, // 41: kiln.v1.KilnService.ClaimTask:input_type -> kiln.v1.ClaimTaskRequest
+	26, // 42: kiln.v1.KilnService.UpdateWorkState:input_type -> kiln.v1.UpdateWorkStateRequest
+	28, // 43: kiln.v1.KilnService.ReleaseTask:input_type -> kiln.v1.ReleaseTaskRequest
+	30, // 44: kiln.v1.KilnService.GetTaskContext:input_type -> kiln.v1.GetTaskContextRequest
+	32, // 45: kiln.v1.KilnService.GetItemChanges:input_type -> kiln.v1.GetItemChangesRequest
+	34, // 46: kiln.v1.KilnService.ListHistory:input_type -> kiln.v1.ListHistoryRequest
+	36, // 47: kiln.v1.KilnService.AddDecisionNote:input_type -> kiln.v1.AddDecisionNoteRequest
+	38, // 48: kiln.v1.KilnService.RestoreVersion:input_type -> kiln.v1.RestoreVersionRequest
+	40, // 49: kiln.v1.KilnService.WatchItems:input_type -> kiln.v1.WatchItemsRequest
+	5,  // 50: kiln.v1.KilnService.CreateItem:output_type -> kiln.v1.CreateItemResponse
+	7,  // 51: kiln.v1.KilnService.GetItem:output_type -> kiln.v1.GetItemResponse
+	9,  // 52: kiln.v1.KilnService.ListItems:output_type -> kiln.v1.ListItemsResponse
+	11, // 53: kiln.v1.KilnService.UpdateItem:output_type -> kiln.v1.UpdateItemResponse
+	13, // 54: kiln.v1.KilnService.DeleteItem:output_type -> kiln.v1.DeleteItemResponse
+	15, // 55: kiln.v1.KilnService.MoveItem:output_type -> kiln.v1.MoveItemResponse
+	17, // 56: kiln.v1.KilnService.AddDependency:output_type -> kiln.v1.AddDependencyResponse
+	19, // 57: kiln.v1.KilnService.RemoveDependency:output_type -> kiln.v1.RemoveDependencyResponse
+	21, // 58: kiln.v1.KilnService.SetStatus:output_type -> kiln.v1.SetStatusResponse
+	23, // 59: kiln.v1.KilnService.NextTask:output_type -> kiln.v1.NextTaskResponse
+	25, // 60: kiln.v1.KilnService.ClaimTask:output_type -> kiln.v1.ClaimTaskResponse
+	27, // 61: kiln.v1.KilnService.UpdateWorkState:output_type -> kiln.v1.UpdateWorkStateResponse
+	29, // 62: kiln.v1.KilnService.ReleaseTask:output_type -> kiln.v1.ReleaseTaskResponse
+	31, // 63: kiln.v1.KilnService.GetTaskContext:output_type -> kiln.v1.GetTaskContextResponse
+	33, // 64: kiln.v1.KilnService.GetItemChanges:output_type -> kiln.v1.GetItemChangesResponse
+	35, // 65: kiln.v1.KilnService.ListHistory:output_type -> kiln.v1.ListHistoryResponse
+	37, // 66: kiln.v1.KilnService.AddDecisionNote:output_type -> kiln.v1.AddDecisionNoteResponse
+	39, // 67: kiln.v1.KilnService.RestoreVersion:output_type -> kiln.v1.RestoreVersionResponse
+	41, // 68: kiln.v1.KilnService.WatchItems:output_type -> kiln.v1.WatchItemsResponse
+	50, // [50:69] is the sub-list for method output_type
+	31, // [31:50] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_kiln_v1_service_proto_init() }
@@ -2219,12 +2571,13 @@ func file_kiln_v1_service_proto_init() {
 	if File_kiln_v1_service_proto != nil {
 		return
 	}
+	file_kiln_v1_history_proto_init()
 	file_kiln_v1_item_proto_init()
 	file_kiln_v1_service_proto_msgTypes[13].OneofWrappers = []any{
 		(*MoveItemRequest_BeforeId)(nil),
 		(*MoveItemRequest_AfterId)(nil),
 	}
-	file_kiln_v1_service_proto_msgTypes[34].OneofWrappers = []any{
+	file_kiln_v1_service_proto_msgTypes[40].OneofWrappers = []any{
 		(*WatchItemsResponse_Updated)(nil),
 		(*WatchItemsResponse_DeletedId)(nil),
 	}
@@ -2234,7 +2587,7 @@ func file_kiln_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kiln_v1_service_proto_rawDesc), len(file_kiln_v1_service_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   35,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

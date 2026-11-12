@@ -147,8 +147,9 @@ type Item struct {
 	// on different branches never collide.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// Incremented on every change, including outside edits picked up by the
-	// daemon. Writes must state the revision they are based on; a write based on
-	// an older revision is rejected.
+	// daemon, except work-state updates (see Task.work_state). Writes must state
+	// the revision they are based on; a write based on an older revision is
+	// rejected.
 	Revision int64  `protobuf:"varint,2,opt,name=revision,proto3" json:"revision,omitempty"`
 	Title    string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	// Markdown.
@@ -445,6 +446,11 @@ type Task struct {
 	// What the agents working on this task have recorded so another agent can
 	// continue it. Kept after the task moves on, so the user can find the
 	// branch and PR when reviewing.
+	//
+	// Updating it rewrites this file but doesn't increment the revision or add
+	// a history entry. The pending work state is recorded in the task's next
+	// history entry, or in its own entry when the agent's claim ends without
+	// one (release or expiry): one entry per agent session, not per update.
 	WorkState     *WorkState `protobuf:"bytes,5,opt,name=work_state,json=workState,proto3" json:"work_state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

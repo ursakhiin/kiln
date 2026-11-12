@@ -31,8 +31,9 @@ export type Item = Message<"kiln.v1.Item"> & {
 
   /**
    * Incremented on every change, including outside edits picked up by the
-   * daemon. Writes must state the revision they are based on; a write based on
-   * an older revision is rejected.
+   * daemon, except work-state updates (see Task.work_state). Writes must state
+   * the revision they are based on; a write based on an older revision is
+   * rejected.
    *
    * @generated from field: int64 revision = 2;
    */
@@ -211,6 +212,11 @@ export type Task = Message<"kiln.v1.Task"> & {
    * What the agents working on this task have recorded so another agent can
    * continue it. Kept after the task moves on, so the user can find the
    * branch and PR when reviewing.
+   *
+   * Updating it rewrites this file but doesn't increment the revision or add
+   * a history entry. The pending work state is recorded in the task's next
+   * history entry, or in its own entry when the agent's claim ends without
+   * one (release or expiry): one entry per agent session, not per update.
    *
    * @generated from field: kiln.v1.WorkState work_state = 5;
    */

@@ -60,6 +60,8 @@ As an agent, I want to ask Kiln for the next task to work on and claim it so oth
 * **Local-first, single user plus multiple agents.** No auth in v1.
 * **Storage:**
   * Text files under `.kiln/` (one file per item), committed to git, are the source of truth.
+  * History is append-only, with one file per entry under `.kiln/history/<item-id>/`, so branches that both add history merge cleanly.
+  * Work-state updates rewrite the task file without incrementing its revision or adding history. Each agent session's final work state is recorded once: in the task's next history entry, or on its own when the claim ends.
   * A gitignored SQLite index is rebuilt from those files for fast queries and graph rendering.
 * **Daemon:** one `kiln serve` process per repo owns the files and the index. It serves the web GUI, the CLI's API and MCP (streamable HTTP).
   * Any `kiln` CLI command auto-starts the daemon if it isn't running.

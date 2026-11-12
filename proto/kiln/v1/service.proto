@@ -5,6 +5,7 @@ package kiln.v1;
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 import "kiln/options/v1/mcp.proto";
+import "kiln/v1/history.proto";
 import "kiln/v1/item.proto";
 
 // KilnService is every operation on Kiln data. The daemon serves it to the
@@ -95,7 +96,8 @@ service KilnService {
   // worktree, commits, PR, your session ID and transcript path, progress
   // notes and files. Call it when you start (once you have a branch or
   // worktree), after each commit, and before you stop. Only the agent holding
-  // the claim, or the user, can call it. It doesn't need a base_revision.
+  // the claim, or the user, can call it. It doesn't need a base_revision and
+  // doesn't change the task's revision, so call it as often as is useful.
   rpc UpdateWorkState(UpdateWorkStateRequest) returns (UpdateWorkStateResponse) {
     option (kiln.options.v1.mcp_tool) = {name: "update_work_state"};
   }
@@ -112,11 +114,29 @@ service KilnService {
     option (kiln.options.v1.mcp_tool) = {name: "get_task_context"};
   }
 
-  // Get every version of an item after the given revision. Use this after a
-  // write is rejected for an outdated revision, to see what changed.
+  // Get the changes to an item after the given revision: who changed what,
+  // with the item as it was after each change. Use this after a write is
+  // rejected for an outdated revision, to see what changed.
   rpc GetItemChanges(GetItemChangesRequest) returns (GetItemChangesResponse) {
     option (kiln.options.v1.mcp_tool) = {name: "get_item_changes"};
   }
+
+  // List an item's history, oldest first: changes and decision notes. Read
+  // the decision notes before changing direction on a task, to see why
+  // things are the way they are.
+  rpc ListHistory(ListHistoryRequest) returns (ListHistoryResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "list_history"};
+  }
+
+  // Record why a decision was made (e.g. "chose X over Y because Z"), so the
+  // user and later agents can understand it. Notes can't be edited; add a new
+  // one to correct an earlier note.
+  rpc AddDecisionNote(AddDecisionNoteRequest) returns (AddDecisionNoteResponse) {
+    option (kiln.options.v1.mcp_tool) = {name: "add_decision_note"};
+  }
+
+  // Restore an item to an earlier version, as a new revision. User only.
+  rpc RestoreVersion(RestoreVersionRequest) returns (RestoreVersionResponse);
 
   // Stream every item change, for the GUI. Agents get updates through MCP
   // resource subscriptions instead.
@@ -359,14 +379,57 @@ message GetItemChangesRequest {
   // ID of the item.
   string id = 1;
 
-  // Return versions after this revision.
+  // Return changes after this revision.
   int64 since_revision = 2;
 }
 
 message GetItemChangesResponse {
-  // The item at each revision after since_revision, oldest first. The last
-  // one is the current version.
-  repeated Item versions = 1;
+  // Change entries after since_revision, oldest first. The last snapshot is
+  // the current version.
+  repeated HistoryEntry changes = 1;
+}
+
+message ListHistoryRequest {
+  // ID of the item.
+  string id = 1;
+
+  // Also include the history of the item's children (a feature's tasks, or a
+  // project's features and their tasks).
+  bool include_children = 2;
+
+  // Only decision notes, without changes.
+  bool notes_only = 3;
+}
+
+message ListHistoryResponse {
+  // History entries, oldest first.
+  repeated HistoryEntry entries = 1;
+}
+
+message AddDecisionNoteRequest {
+  // ID of the item the decision is about.
+  string item_id = 1;
+
+  // The note, in markdown: what was decided and why.
+  string body = 2;
+}
+
+message AddDecisionNoteResponse {
+  HistoryEntry entry = 1;
+}
+
+message RestoreVersionRequest {
+  string id = 1;
+
+  // The revision your change is based on.
+  int64 base_revision = 2;
+
+  // The earlier revision to restore.
+  int64 revision = 3;
+}
+
+message RestoreVersionResponse {
+  ItemInfo item = 1;
 }
 
 message WatchItemsRequest {}

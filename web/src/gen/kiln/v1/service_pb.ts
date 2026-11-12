@@ -7,6 +7,8 @@ import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf
 import type { FieldMask, Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_field_mask, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import { file_kiln_options_v1_mcp } from "../options/v1/mcp_pb";
+import type { HistoryEntry } from "./history_pb";
+import { file_kiln_v1_history } from "./history_pb";
 import type { Dependency, Item, Status, WorkState } from "./item_pb";
 import { file_kiln_v1_item } from "./item_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -15,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file kiln/v1/service.proto.
  */
 export const file_kiln_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("ChVraWxuL3YxL3NlcnZpY2UucHJvdG8SB2tpbG4udjEieAoISXRlbUluZm8SGwoEaXRlbRgBIAEoCzINLmtpbG4udjEuSXRlbRIfCgZzdGF0dXMYAiABKA4yDy5raWxuLnYxLlN0YXR1cxIPCgdibG9ja2VkGAMgASgIEh0KBWNsYWltGAQgASgLMg4ua2lsbi52MS5DbGFpbSJKCgVDbGFpbRIQCghhZ2VudF9pZBgBIAEoCRIvCgtleHBpcmVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiNgoQUmV2aXNpb25Db25mbGljdBIiCgdjdXJyZW50GAEgASgLMhEua2lsbi52MS5JdGVtSW5mbyIwChFDcmVhdGVJdGVtUmVxdWVzdBIbCgRpdGVtGAEgASgLMg0ua2lsbi52MS5JdGVtIjUKEkNyZWF0ZUl0ZW1SZXNwb25zZRIfCgRpdGVtGAEgASgLMhEua2lsbi52MS5JdGVtSW5mbyIcCg5HZXRJdGVtUmVxdWVzdBIKCgJpZBgBIAEoCSIyCg9HZXRJdGVtUmVzcG9uc2USHwoEaXRlbRgBIAEoCzIRLmtpbG4udjEuSXRlbUluZm8ifgoQTGlzdEl0ZW1zUmVxdWVzdBIfCgRraW5kGAEgASgOMhEua2lsbi52MS5JdGVtS2luZBISCgpwcm9qZWN0X2lkGAIgASgJEhIKCmZlYXR1cmVfaWQYAyABKAkSIQoIc3RhdHVzZXMYBCADKA4yDy5raWxuLnYxLlN0YXR1cyI1ChFMaXN0SXRlbXNSZXNwb25zZRIgCgVpdGVtcxgBIAMoCzIRLmtpbG4udjEuSXRlbUluZm8ieAoRVXBkYXRlSXRlbVJlcXVlc3QSGwoEaXRlbRgBIAEoCzINLmtpbG4udjEuSXRlbRIVCg1iYXNlX3JldmlzaW9uGAIgASgDEi8KC3VwZGF0ZV9tYXNrGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzayI1ChJVcGRhdGVJdGVtUmVzcG9uc2USHwoEaXRlbRgBIAEoCzIRLmtpbG4udjEuSXRlbUluZm8iNgoRRGVsZXRlSXRlbVJlcXVlc3QSCgoCaWQYASABKAkSFQoNYmFzZV9yZXZpc2lvbhgCIAEoAyIUChJEZWxldGVJdGVtUmVzcG9uc2UiaQoPTW92ZUl0ZW1SZXF1ZXN0EgoKAmlkGAEgASgJEhUKDWJhc2VfcmV2aXNpb24YAiABKAMSEwoJYmVmb3JlX2lkGAMgASgJSAASEgoIYWZ0ZXJfaWQYBCABKAlIAEIKCghwb3NpdGlvbiIzChBNb3ZlSXRlbVJlc3BvbnNlEh8KBGl0ZW0YASABKAsyES5raWxuLnYxLkl0ZW1JbmZvImcKFEFkZERlcGVuZGVuY3lSZXF1ZXN0Eg8KB2l0ZW1faWQYASABKAkSFQoNYmFzZV9yZXZpc2lvbhgCIAEoAxInCgpkZXBlbmRlbmN5GAMgASgLMhMua2lsbi52MS5EZXBlbmRlbmN5IjgKFUFkZERlcGVuZGVuY3lSZXNwb25zZRIfCgRpdGVtGAEgASgLMhEua2lsbi52MS5JdGVtSW5mbyJYChdSZW1vdmVEZXBlbmRlbmN5UmVxdWVzdBIPCgdpdGVtX2lkGAEgASgJEhUKDWJhc2VfcmV2aXNpb24YAiABKAMSFQoNZGVwZW5kc19vbl9pZBgDIAEoCSI7ChhSZW1vdmVEZXBlbmRlbmN5UmVzcG9uc2USHwoEaXRlbRgBIAEoCzIRLmtpbG4udjEuSXRlbUluZm8iVgoQU2V0U3RhdHVzUmVxdWVzdBIKCgJpZBgBIAEoCRIVCg1iYXNlX3JldmlzaW9uGAIgASgDEh8KBnN0YXR1cxgDIAEoDjIPLmtpbG4udjEuU3RhdHVzIjQKEVNldFN0YXR1c1Jlc3BvbnNlEh8KBGl0ZW0YASABKAsyES5raWxuLnYxLkl0ZW1JbmZvIiUKD05leHRUYXNrUmVxdWVzdBISCgpwcm9qZWN0X2lkGAEgASgJIkQKEE5leHRUYXNrUmVzcG9uc2USHwoEdGFzaxgBIAEoCzIRLmtpbG4udjEuSXRlbUluZm8SDwoHY29udGV4dBgCIAEoCSIeChBDbGFpbVRhc2tSZXF1ZXN0EgoKAmlkGAEgASgJIkUKEUNsYWltVGFza1Jlc3BvbnNlEh8KBHRhc2sYASABKAsyES5raWxuLnYxLkl0ZW1JbmZvEg8KB2NvbnRleHQYAiABKAkifQoWVXBkYXRlV29ya1N0YXRlUmVxdWVzdBIKCgJpZBgBIAEoCRImCgp3b3JrX3N0YXRlGAIgASgLMhIua2lsbi52MS5Xb3JrU3RhdGUSLwoLdXBkYXRlX21hc2sYAyABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrIjoKF1VwZGF0ZVdvcmtTdGF0ZVJlc3BvbnNlEh8KBHRhc2sYASABKAsyES5raWxuLnYxLkl0ZW1JbmZvIiAKElJlbGVhc2VUYXNrUmVxdWVzdBIKCgJpZBgBIAEoCSI2ChNSZWxlYXNlVGFza1Jlc3BvbnNlEh8KBHRhc2sYASABKAsyES5raWxuLnYxLkl0ZW1JbmZvIiMKFUdldFRhc2tDb250ZXh0UmVxdWVzdBIKCgJpZBgBIAEoCSI7ChZHZXRUYXNrQ29udGV4dFJlc3BvbnNlEg8KB2NvbnRleHQYASABKAkSEAoIcmV2aXNpb24YAiABKAMiOwoVR2V0SXRlbUNoYW5nZXNSZXF1ZXN0EgoKAmlkGAEgASgJEhYKDnNpbmNlX3JldmlzaW9uGAIgASgDIjkKFkdldEl0ZW1DaGFuZ2VzUmVzcG9uc2USHwoIdmVyc2lvbnMYASADKAsyDS5raWxuLnYxLkl0ZW0iEwoRV2F0Y2hJdGVtc1JlcXVlc3QiWQoSV2F0Y2hJdGVtc1Jlc3BvbnNlEiQKB3VwZGF0ZWQYASABKAsyES5raWxuLnYxLkl0ZW1JbmZvSAASFAoKZGVsZXRlZF9pZBgCIAEoCUgAQgcKBWV2ZW50KmcKCEl0ZW1LaW5kEhkKFUlURU1fS0lORF9VTlNQRUNJRklFRBAAEhUKEUlURU1fS0lORF9QUk9KRUNUEAESFQoRSVRFTV9LSU5EX0ZFQVRVUkUQAhISCg5JVEVNX0tJTkRfVEFTSxADMq8LCgtLaWxuU2VydmljZRJYCgpDcmVhdGVJdGVtEhoua2lsbi52MS5DcmVhdGVJdGVtUmVxdWVzdBobLmtpbG4udjEuQ3JlYXRlSXRlbVJlc3BvbnNlIhGCtRgNCgtjcmVhdGVfaXRlbRJMCgdHZXRJdGVtEhcua2lsbi52MS5HZXRJdGVtUmVxdWVzdBoYLmtpbG4udjEuR2V0SXRlbVJlc3BvbnNlIg6CtRgKCghnZXRfaXRlbRJUCglMaXN0SXRlbXMSGS5raWxuLnYxLkxpc3RJdGVtc1JlcXVlc3QaGi5raWxuLnYxLkxpc3RJdGVtc1Jlc3BvbnNlIhCCtRgMCgpsaXN0X2l0ZW1zElgKClVwZGF0ZUl0ZW0SGi5raWxuLnYxLlVwZGF0ZUl0ZW1SZXF1ZXN0Ghsua2lsbi52MS5VcGRhdGVJdGVtUmVzcG9uc2UiEYK1GA0KC3VwZGF0ZV9pdGVtEkUKCkRlbGV0ZUl0ZW0SGi5raWxuLnYxLkRlbGV0ZUl0ZW1SZXF1ZXN0Ghsua2lsbi52MS5EZWxldGVJdGVtUmVzcG9uc2USPwoITW92ZUl0ZW0SGC5raWxuLnYxLk1vdmVJdGVtUmVxdWVzdBoZLmtpbG4udjEuTW92ZUl0ZW1SZXNwb25zZRJkCg1BZGREZXBlbmRlbmN5Eh0ua2lsbi52MS5BZGREZXBlbmRlbmN5UmVxdWVzdBoeLmtpbG4udjEuQWRkRGVwZW5kZW5jeVJlc3BvbnNlIhSCtRgQCg5hZGRfZGVwZW5kZW5jeRJwChBSZW1vdmVEZXBlbmRlbmN5EiAua2lsbi52MS5SZW1vdmVEZXBlbmRlbmN5UmVxdWVzdBohLmtpbG4udjEuUmVtb3ZlRGVwZW5kZW5jeVJlc3BvbnNlIheCtRgTChFyZW1vdmVfZGVwZW5kZW5jeRJUCglTZXRTdGF0dXMSGS5raWxuLnYxLlNldFN0YXR1c1JlcXVlc3QaGi5raWxuLnYxLlNldFN0YXR1c1Jlc3BvbnNlIhCCtRgMCgpzZXRfc3RhdHVzElAKCE5leHRUYXNrEhgua2lsbi52MS5OZXh0VGFza1JlcXVlc3QaGS5raWxuLnYxLk5leHRUYXNrUmVzcG9uc2UiD4K1GAsKCW5leHRfdGFzaxJUCglDbGFpbVRhc2sSGS5raWxuLnYxLkNsYWltVGFza1JlcXVlc3QaGi5raWxuLnYxLkNsYWltVGFza1Jlc3BvbnNlIhCCtRgMCgpjbGFpbV90YXNrEm0KD1VwZGF0ZVdvcmtTdGF0ZRIfLmtpbG4udjEuVXBkYXRlV29ya1N0YXRlUmVxdWVzdBogLmtpbG4udjEuVXBkYXRlV29ya1N0YXRlUmVzcG9uc2UiF4K1GBMKEXVwZGF0ZV93b3JrX3N0YXRlElwKC1JlbGVhc2VUYXNrEhsua2lsbi52MS5SZWxlYXNlVGFza1JlcXVlc3QaHC5raWxuLnYxLlJlbGVhc2VUYXNrUmVzcG9uc2UiEoK1GA4KDHJlbGVhc2VfdGFzaxJpCg5HZXRUYXNrQ29udGV4dBIeLmtpbG4udjEuR2V0VGFza0NvbnRleHRSZXF1ZXN0Gh8ua2lsbi52MS5HZXRUYXNrQ29udGV4dFJlc3BvbnNlIhaCtRgSChBnZXRfdGFza19jb250ZXh0EmkKDkdldEl0ZW1DaGFuZ2VzEh4ua2lsbi52MS5HZXRJdGVtQ2hhbmdlc1JlcXVlc3QaHy5raWxuLnYxLkdldEl0ZW1DaGFuZ2VzUmVzcG9uc2UiFoK1GBIKEGdldF9pdGVtX2NoYW5nZXMSRwoKV2F0Y2hJdGVtcxIaLmtpbG4udjEuV2F0Y2hJdGVtc1JlcXVlc3QaGy5raWxuLnYxLldhdGNoSXRlbXNSZXNwb25zZTABQokBCgtjb20ua2lsbi52MUIMU2VydmljZVByb3RvUAFaL2dpdGh1Yi5jb20vdXJzYWtoaWluL2tpbG4vZ2VuL2dvL2tpbG4vdjE7a2lsbnYxogIDS1hYqgIHS2lsbi5WMcoCB0tpbG5cVjHiAhNLaWxuXFYxXEdQQk1ldGFkYXRh6gIIS2lsbjo6VjFiBnByb3RvMw", [file_google_protobuf_field_mask, file_google_protobuf_timestamp, file_kiln_options_v1_mcp, file_kiln_v1_item]);
+  fileDesc("ChVraWxuL3YxL3NlcnZpY2UucHJvdG8SB2tpbG4udjEieAoISXRlbUluZm8SGwoEaXRlbRgBIAEoCzINLmtpbG4udjEuSXRlbRIfCgZzdGF0dXMYAiABKA4yDy5raWxuLnYxLlN0YXR1cxIPCgdibG9ja2VkGAMgASgIEh0KBWNsYWltGAQgASgLMg4ua2lsbi52MS5DbGFpbSJKCgVDbGFpbRIQCghhZ2VudF9pZBgBIAEoCRIvCgtleHBpcmVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiNgoQUmV2aXNpb25Db25mbGljdBIiCgdjdXJyZW50GAEgASgLMhEua2lsbi52MS5JdGVtSW5mbyIwChFDcmVhdGVJdGVtUmVxdWVzdBIbCgRpdGVtGAEgASgLMg0ua2lsbi52MS5JdGVtIjUKEkNyZWF0ZUl0ZW1SZXNwb25zZRIfCgRpdGVtGAEgASgLMhEua2lsbi52MS5JdGVtSW5mbyIcCg5HZXRJdGVtUmVxdWVzdBIKCgJpZBgBIAEoCSIyCg9HZXRJdGVtUmVzcG9uc2USHwoEaXRlbRgBIAEoCzIRLmtpbG4udjEuSXRlbUluZm8ifgoQTGlzdEl0ZW1zUmVxdWVzdBIfCgRraW5kGAEgASgOMhEua2lsbi52MS5JdGVtS2luZBISCgpwcm9qZWN0X2lkGAIgASgJEhIKCmZlYXR1cmVfaWQYAyABKAkSIQoIc3RhdHVzZXMYBCADKA4yDy5raWxuLnYxLlN0YXR1cyI1ChFMaXN0SXRlbXNSZXNwb25zZRIgCgVpdGVtcxgBIAMoCzIRLmtpbG4udjEuSXRlbUluZm8ieAoRVXBkYXRlSXRlbVJlcXVlc3QSGwoEaXRlbRgBIAEoCzINLmtpbG4udjEuSXRlbRIVCg1iYXNlX3JldmlzaW9uGAIgASgDEi8KC3VwZGF0ZV9tYXNrGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzayI1ChJVcGRhdGVJdGVtUmVzcG9uc2USHwoEaXRlbRgBIAEoCzIRLmtpbG4udjEuSXRlbUluZm8iNgoRRGVsZXRlSXRlbVJlcXVlc3QSCgoCaWQYASABKAkSFQoNYmFzZV9yZXZpc2lvbhgCIAEoAyIUChJEZWxldGVJdGVtUmVzcG9uc2UiaQoPTW92ZUl0ZW1SZXF1ZXN0EgoKAmlkGAEgASgJEhUKDWJhc2VfcmV2aXNpb24YAiABKAMSEwoJYmVmb3JlX2lkGAMgASgJSAASEgoIYWZ0ZXJfaWQYBCABKAlIAEIKCghwb3NpdGlvbiIzChBNb3ZlSXRlbVJlc3BvbnNlEh8KBGl0ZW0YASABKAsyES5raWxuLnYxLkl0ZW1JbmZvImcKFEFkZERlcGVuZGVuY3lSZXF1ZXN0Eg8KB2l0ZW1faWQYASABKAkSFQoNYmFzZV9yZXZpc2lvbhgCIAEoAxInCgpkZXBlbmRlbmN5GAMgASgLMhMua2lsbi52MS5EZXBlbmRlbmN5IjgKFUFkZERlcGVuZGVuY3lSZXNwb25zZRIfCgRpdGVtGAEgASgLMhEua2lsbi52MS5JdGVtSW5mbyJYChdSZW1vdmVEZXBlbmRlbmN5UmVxdWVzdBIPCgdpdGVtX2lkGAEgASgJEhUKDWJhc2VfcmV2aXNpb24YAiABKAMSFQoNZGVwZW5kc19vbl9pZBgDIAEoCSI7ChhSZW1vdmVEZXBlbmRlbmN5UmVzcG9uc2USHwoEaXRlbRgBIAEoCzIRLmtpbG4udjEuSXRlbUluZm8iVgoQU2V0U3RhdHVzUmVxdWVzdBIKCgJpZBgBIAEoCRIVCg1iYXNlX3JldmlzaW9uGAIgASgDEh8KBnN0YXR1cxgDIAEoDjIPLmtpbG4udjEuU3RhdHVzIjQKEVNldFN0YXR1c1Jlc3BvbnNlEh8KBGl0ZW0YASABKAsyES5raWxuLnYxLkl0ZW1JbmZvIiUKD05leHRUYXNrUmVxdWVzdBISCgpwcm9qZWN0X2lkGAEgASgJIkQKEE5leHRUYXNrUmVzcG9uc2USHwoEdGFzaxgBIAEoCzIRLmtpbG4udjEuSXRlbUluZm8SDwoHY29udGV4dBgCIAEoCSIeChBDbGFpbVRhc2tSZXF1ZXN0EgoKAmlkGAEgASgJIkUKEUNsYWltVGFza1Jlc3BvbnNlEh8KBHRhc2sYASABKAsyES5raWxuLnYxLkl0ZW1JbmZvEg8KB2NvbnRleHQYAiABKAkifQoWVXBkYXRlV29ya1N0YXRlUmVxdWVzdBIKCgJpZBgBIAEoCRImCgp3b3JrX3N0YXRlGAIgASgLMhIua2lsbi52MS5Xb3JrU3RhdGUSLwoLdXBkYXRlX21hc2sYAyABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrIjoKF1VwZGF0ZVdvcmtTdGF0ZVJlc3BvbnNlEh8KBHRhc2sYASABKAsyES5raWxuLnYxLkl0ZW1JbmZvIiAKElJlbGVhc2VUYXNrUmVxdWVzdBIKCgJpZBgBIAEoCSI2ChNSZWxlYXNlVGFza1Jlc3BvbnNlEh8KBHRhc2sYASABKAsyES5raWxuLnYxLkl0ZW1JbmZvIiMKFUdldFRhc2tDb250ZXh0UmVxdWVzdBIKCgJpZBgBIAEoCSI7ChZHZXRUYXNrQ29udGV4dFJlc3BvbnNlEg8KB2NvbnRleHQYASABKAkSEAoIcmV2aXNpb24YAiABKAMiOwoVR2V0SXRlbUNoYW5nZXNSZXF1ZXN0EgoKAmlkGAEgASgJEhYKDnNpbmNlX3JldmlzaW9uGAIgASgDIkAKFkdldEl0ZW1DaGFuZ2VzUmVzcG9uc2USJgoHY2hhbmdlcxgBIAMoCzIVLmtpbG4udjEuSGlzdG9yeUVudHJ5Ik4KEkxpc3RIaXN0b3J5UmVxdWVzdBIKCgJpZBgBIAEoCRIYChBpbmNsdWRlX2NoaWxkcmVuGAIgASgIEhIKCm5vdGVzX29ubHkYAyABKAgiPQoTTGlzdEhpc3RvcnlSZXNwb25zZRImCgdlbnRyaWVzGAEgAygLMhUua2lsbi52MS5IaXN0b3J5RW50cnkiNwoWQWRkRGVjaXNpb25Ob3RlUmVxdWVzdBIPCgdpdGVtX2lkGAEgASgJEgwKBGJvZHkYAiABKAkiPwoXQWRkRGVjaXNpb25Ob3RlUmVzcG9uc2USJAoFZW50cnkYASABKAsyFS5raWxuLnYxLkhpc3RvcnlFbnRyeSJMChVSZXN0b3JlVmVyc2lvblJlcXVlc3QSCgoCaWQYASABKAkSFQoNYmFzZV9yZXZpc2lvbhgCIAEoAxIQCghyZXZpc2lvbhgDIAEoAyI5ChZSZXN0b3JlVmVyc2lvblJlc3BvbnNlEh8KBGl0ZW0YASABKAsyES5raWxuLnYxLkl0ZW1JbmZvIhMKEVdhdGNoSXRlbXNSZXF1ZXN0IlkKEldhdGNoSXRlbXNSZXNwb25zZRIkCgd1cGRhdGVkGAEgASgLMhEua2lsbi52MS5JdGVtSW5mb0gAEhQKCmRlbGV0ZWRfaWQYAiABKAlIAEIHCgVldmVudCpnCghJdGVtS2luZBIZChVJVEVNX0tJTkRfVU5TUEVDSUZJRUQQABIVChFJVEVNX0tJTkRfUFJPSkVDVBABEhUKEUlURU1fS0lORF9GRUFUVVJFEAISEgoOSVRFTV9LSU5EX1RBU0sQAzLPDQoLS2lsblNlcnZpY2USWAoKQ3JlYXRlSXRlbRIaLmtpbG4udjEuQ3JlYXRlSXRlbVJlcXVlc3QaGy5raWxuLnYxLkNyZWF0ZUl0ZW1SZXNwb25zZSIRgrUYDQoLY3JlYXRlX2l0ZW0STAoHR2V0SXRlbRIXLmtpbG4udjEuR2V0SXRlbVJlcXVlc3QaGC5raWxuLnYxLkdldEl0ZW1SZXNwb25zZSIOgrUYCgoIZ2V0X2l0ZW0SVAoJTGlzdEl0ZW1zEhkua2lsbi52MS5MaXN0SXRlbXNSZXF1ZXN0Ghoua2lsbi52MS5MaXN0SXRlbXNSZXNwb25zZSIQgrUYDAoKbGlzdF9pdGVtcxJYCgpVcGRhdGVJdGVtEhoua2lsbi52MS5VcGRhdGVJdGVtUmVxdWVzdBobLmtpbG4udjEuVXBkYXRlSXRlbVJlc3BvbnNlIhGCtRgNCgt1cGRhdGVfaXRlbRJFCgpEZWxldGVJdGVtEhoua2lsbi52MS5EZWxldGVJdGVtUmVxdWVzdBobLmtpbG4udjEuRGVsZXRlSXRlbVJlc3BvbnNlEj8KCE1vdmVJdGVtEhgua2lsbi52MS5Nb3ZlSXRlbVJlcXVlc3QaGS5raWxuLnYxLk1vdmVJdGVtUmVzcG9uc2USZAoNQWRkRGVwZW5kZW5jeRIdLmtpbG4udjEuQWRkRGVwZW5kZW5jeVJlcXVlc3QaHi5raWxuLnYxLkFkZERlcGVuZGVuY3lSZXNwb25zZSIUgrUYEAoOYWRkX2RlcGVuZGVuY3kScAoQUmVtb3ZlRGVwZW5kZW5jeRIgLmtpbG4udjEuUmVtb3ZlRGVwZW5kZW5jeVJlcXVlc3QaIS5raWxuLnYxLlJlbW92ZURlcGVuZGVuY3lSZXNwb25zZSIXgrUYEwoRcmVtb3ZlX2RlcGVuZGVuY3kSVAoJU2V0U3RhdHVzEhkua2lsbi52MS5TZXRTdGF0dXNSZXF1ZXN0Ghoua2lsbi52MS5TZXRTdGF0dXNSZXNwb25zZSIQgrUYDAoKc2V0X3N0YXR1cxJQCghOZXh0VGFzaxIYLmtpbG4udjEuTmV4dFRhc2tSZXF1ZXN0Ghkua2lsbi52MS5OZXh0VGFza1Jlc3BvbnNlIg+CtRgLCgluZXh0X3Rhc2sSVAoJQ2xhaW1UYXNrEhkua2lsbi52MS5DbGFpbVRhc2tSZXF1ZXN0Ghoua2lsbi52MS5DbGFpbVRhc2tSZXNwb25zZSIQgrUYDAoKY2xhaW1fdGFzaxJtCg9VcGRhdGVXb3JrU3RhdGUSHy5raWxuLnYxLlVwZGF0ZVdvcmtTdGF0ZVJlcXVlc3QaIC5raWxuLnYxLlVwZGF0ZVdvcmtTdGF0ZVJlc3BvbnNlIheCtRgTChF1cGRhdGVfd29ya19zdGF0ZRJcCgtSZWxlYXNlVGFzaxIbLmtpbG4udjEuUmVsZWFzZVRhc2tSZXF1ZXN0Ghwua2lsbi52MS5SZWxlYXNlVGFza1Jlc3BvbnNlIhKCtRgOCgxyZWxlYXNlX3Rhc2sSaQoOR2V0VGFza0NvbnRleHQSHi5raWxuLnYxLkdldFRhc2tDb250ZXh0UmVxdWVzdBofLmtpbG4udjEuR2V0VGFza0NvbnRleHRSZXNwb25zZSIWgrUYEgoQZ2V0X3Rhc2tfY29udGV4dBJpCg5HZXRJdGVtQ2hhbmdlcxIeLmtpbG4udjEuR2V0SXRlbUNoYW5nZXNSZXF1ZXN0Gh8ua2lsbi52MS5HZXRJdGVtQ2hhbmdlc1Jlc3BvbnNlIhaCtRgSChBnZXRfaXRlbV9jaGFuZ2VzElwKC0xpc3RIaXN0b3J5Ehsua2lsbi52MS5MaXN0SGlzdG9yeVJlcXVlc3QaHC5raWxuLnYxLkxpc3RIaXN0b3J5UmVzcG9uc2UiEoK1GA4KDGxpc3RfaGlzdG9yeRJtCg9BZGREZWNpc2lvbk5vdGUSHy5raWxuLnYxLkFkZERlY2lzaW9uTm90ZVJlcXVlc3QaIC5raWxuLnYxLkFkZERlY2lzaW9uTm90ZVJlc3BvbnNlIheCtRgTChFhZGRfZGVjaXNpb25fbm90ZRJRCg5SZXN0b3JlVmVyc2lvbhIeLmtpbG4udjEuUmVzdG9yZVZlcnNpb25SZXF1ZXN0Gh8ua2lsbi52MS5SZXN0b3JlVmVyc2lvblJlc3BvbnNlEkcKCldhdGNoSXRlbXMSGi5raWxuLnYxLldhdGNoSXRlbXNSZXF1ZXN0Ghsua2lsbi52MS5XYXRjaEl0ZW1zUmVzcG9uc2UwAUKJAQoLY29tLmtpbG4udjFCDFNlcnZpY2VQcm90b1ABWi9naXRodWIuY29tL3Vyc2FraGlpbi9raWxuL2dlbi9nby9raWxuL3YxO2tpbG52MaICA0tYWKoCB0tpbG4uVjHKAgdLaWxuXFYx4gITS2lsblxWMVxHUEJNZXRhZGF0YeoCCEtpbG46OlYxYgZwcm90bzM", [file_google_protobuf_field_mask, file_google_protobuf_timestamp, file_kiln_options_v1_mcp, file_kiln_v1_history, file_kiln_v1_item]);
 
 /**
  * ItemInfo is an item plus state Kiln computes rather than stores.
@@ -776,7 +778,7 @@ export type GetItemChangesRequest = Message<"kiln.v1.GetItemChangesRequest"> & {
   id: string;
 
   /**
-   * Return versions after this revision.
+   * Return changes after this revision.
    *
    * @generated from field: int64 since_revision = 2;
    */
@@ -795,12 +797,12 @@ export const GetItemChangesRequestSchema: GenMessage<GetItemChangesRequest> = /*
  */
 export type GetItemChangesResponse = Message<"kiln.v1.GetItemChangesResponse"> & {
   /**
-   * The item at each revision after since_revision, oldest first. The last
-   * one is the current version.
+   * Change entries after since_revision, oldest first. The last snapshot is
+   * the current version.
    *
-   * @generated from field: repeated kiln.v1.Item versions = 1;
+   * @generated from field: repeated kiln.v1.HistoryEntry changes = 1;
    */
-  versions: Item[];
+  changes: HistoryEntry[];
 };
 
 /**
@@ -809,6 +811,150 @@ export type GetItemChangesResponse = Message<"kiln.v1.GetItemChangesResponse"> &
  */
 export const GetItemChangesResponseSchema: GenMessage<GetItemChangesResponse> = /*@__PURE__*/
   messageDesc(file_kiln_v1_service, 32);
+
+/**
+ * @generated from message kiln.v1.ListHistoryRequest
+ */
+export type ListHistoryRequest = Message<"kiln.v1.ListHistoryRequest"> & {
+  /**
+   * ID of the item.
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * Also include the history of the item's children (a feature's tasks, or a
+   * project's features and their tasks).
+   *
+   * @generated from field: bool include_children = 2;
+   */
+  includeChildren: boolean;
+
+  /**
+   * Only decision notes, without changes.
+   *
+   * @generated from field: bool notes_only = 3;
+   */
+  notesOnly: boolean;
+};
+
+/**
+ * Describes the message kiln.v1.ListHistoryRequest.
+ * Use `create(ListHistoryRequestSchema)` to create a new message.
+ */
+export const ListHistoryRequestSchema: GenMessage<ListHistoryRequest> = /*@__PURE__*/
+  messageDesc(file_kiln_v1_service, 33);
+
+/**
+ * @generated from message kiln.v1.ListHistoryResponse
+ */
+export type ListHistoryResponse = Message<"kiln.v1.ListHistoryResponse"> & {
+  /**
+   * History entries, oldest first.
+   *
+   * @generated from field: repeated kiln.v1.HistoryEntry entries = 1;
+   */
+  entries: HistoryEntry[];
+};
+
+/**
+ * Describes the message kiln.v1.ListHistoryResponse.
+ * Use `create(ListHistoryResponseSchema)` to create a new message.
+ */
+export const ListHistoryResponseSchema: GenMessage<ListHistoryResponse> = /*@__PURE__*/
+  messageDesc(file_kiln_v1_service, 34);
+
+/**
+ * @generated from message kiln.v1.AddDecisionNoteRequest
+ */
+export type AddDecisionNoteRequest = Message<"kiln.v1.AddDecisionNoteRequest"> & {
+  /**
+   * ID of the item the decision is about.
+   *
+   * @generated from field: string item_id = 1;
+   */
+  itemId: string;
+
+  /**
+   * The note, in markdown: what was decided and why.
+   *
+   * @generated from field: string body = 2;
+   */
+  body: string;
+};
+
+/**
+ * Describes the message kiln.v1.AddDecisionNoteRequest.
+ * Use `create(AddDecisionNoteRequestSchema)` to create a new message.
+ */
+export const AddDecisionNoteRequestSchema: GenMessage<AddDecisionNoteRequest> = /*@__PURE__*/
+  messageDesc(file_kiln_v1_service, 35);
+
+/**
+ * @generated from message kiln.v1.AddDecisionNoteResponse
+ */
+export type AddDecisionNoteResponse = Message<"kiln.v1.AddDecisionNoteResponse"> & {
+  /**
+   * @generated from field: kiln.v1.HistoryEntry entry = 1;
+   */
+  entry?: HistoryEntry | undefined;
+};
+
+/**
+ * Describes the message kiln.v1.AddDecisionNoteResponse.
+ * Use `create(AddDecisionNoteResponseSchema)` to create a new message.
+ */
+export const AddDecisionNoteResponseSchema: GenMessage<AddDecisionNoteResponse> = /*@__PURE__*/
+  messageDesc(file_kiln_v1_service, 36);
+
+/**
+ * @generated from message kiln.v1.RestoreVersionRequest
+ */
+export type RestoreVersionRequest = Message<"kiln.v1.RestoreVersionRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * The revision your change is based on.
+   *
+   * @generated from field: int64 base_revision = 2;
+   */
+  baseRevision: bigint;
+
+  /**
+   * The earlier revision to restore.
+   *
+   * @generated from field: int64 revision = 3;
+   */
+  revision: bigint;
+};
+
+/**
+ * Describes the message kiln.v1.RestoreVersionRequest.
+ * Use `create(RestoreVersionRequestSchema)` to create a new message.
+ */
+export const RestoreVersionRequestSchema: GenMessage<RestoreVersionRequest> = /*@__PURE__*/
+  messageDesc(file_kiln_v1_service, 37);
+
+/**
+ * @generated from message kiln.v1.RestoreVersionResponse
+ */
+export type RestoreVersionResponse = Message<"kiln.v1.RestoreVersionResponse"> & {
+  /**
+   * @generated from field: kiln.v1.ItemInfo item = 1;
+   */
+  item?: ItemInfo | undefined;
+};
+
+/**
+ * Describes the message kiln.v1.RestoreVersionResponse.
+ * Use `create(RestoreVersionResponseSchema)` to create a new message.
+ */
+export const RestoreVersionResponseSchema: GenMessage<RestoreVersionResponse> = /*@__PURE__*/
+  messageDesc(file_kiln_v1_service, 38);
 
 /**
  * @generated from message kiln.v1.WatchItemsRequest
@@ -821,7 +967,7 @@ export type WatchItemsRequest = Message<"kiln.v1.WatchItemsRequest"> & {
  * Use `create(WatchItemsRequestSchema)` to create a new message.
  */
 export const WatchItemsRequestSchema: GenMessage<WatchItemsRequest> = /*@__PURE__*/
-  messageDesc(file_kiln_v1_service, 33);
+  messageDesc(file_kiln_v1_service, 39);
 
 /**
  * @generated from message kiln.v1.WatchItemsResponse
@@ -854,7 +1000,7 @@ export type WatchItemsResponse = Message<"kiln.v1.WatchItemsResponse"> & {
  * Use `create(WatchItemsResponseSchema)` to create a new message.
  */
 export const WatchItemsResponseSchema: GenMessage<WatchItemsResponse> = /*@__PURE__*/
-  messageDesc(file_kiln_v1_service, 34);
+  messageDesc(file_kiln_v1_service, 40);
 
 /**
  * ItemKind filters items by type.
@@ -1041,7 +1187,8 @@ export const KilnService: GenService<{
    * worktree, commits, PR, your session ID and transcript path, progress
    * notes and files. Call it when you start (once you have a branch or
    * worktree), after each commit, and before you stop. Only the agent holding
-   * the claim, or the user, can call it. It doesn't need a base_revision.
+   * the claim, or the user, can call it. It doesn't need a base_revision and
+   * doesn't change the task's revision, so call it as often as is useful.
    *
    * @generated from rpc kiln.v1.KilnService.UpdateWorkState
    */
@@ -1073,8 +1220,9 @@ export const KilnService: GenService<{
     output: typeof GetTaskContextResponseSchema;
   },
   /**
-   * Get every version of an item after the given revision. Use this after a
-   * write is rejected for an outdated revision, to see what changed.
+   * Get the changes to an item after the given revision: who changed what,
+   * with the item as it was after each change. Use this after a write is
+   * rejected for an outdated revision, to see what changed.
    *
    * @generated from rpc kiln.v1.KilnService.GetItemChanges
    */
@@ -1082,6 +1230,40 @@ export const KilnService: GenService<{
     methodKind: "unary";
     input: typeof GetItemChangesRequestSchema;
     output: typeof GetItemChangesResponseSchema;
+  },
+  /**
+   * List an item's history, oldest first: changes and decision notes. Read
+   * the decision notes before changing direction on a task, to see why
+   * things are the way they are.
+   *
+   * @generated from rpc kiln.v1.KilnService.ListHistory
+   */
+  listHistory: {
+    methodKind: "unary";
+    input: typeof ListHistoryRequestSchema;
+    output: typeof ListHistoryResponseSchema;
+  },
+  /**
+   * Record why a decision was made (e.g. "chose X over Y because Z"), so the
+   * user and later agents can understand it. Notes can't be edited; add a new
+   * one to correct an earlier note.
+   *
+   * @generated from rpc kiln.v1.KilnService.AddDecisionNote
+   */
+  addDecisionNote: {
+    methodKind: "unary";
+    input: typeof AddDecisionNoteRequestSchema;
+    output: typeof AddDecisionNoteResponseSchema;
+  },
+  /**
+   * Restore an item to an earlier version, as a new revision. User only.
+   *
+   * @generated from rpc kiln.v1.KilnService.RestoreVersion
+   */
+  restoreVersion: {
+    methodKind: "unary";
+    input: typeof RestoreVersionRequestSchema;
+    output: typeof RestoreVersionResponseSchema;
   },
   /**
    * Stream every item change, for the GUI. Agents get updates through MCP

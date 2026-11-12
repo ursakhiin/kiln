@@ -68,6 +68,14 @@ const (
 	// KilnServiceGetItemChangesProcedure is the fully-qualified name of the KilnService's
 	// GetItemChanges RPC.
 	KilnServiceGetItemChangesProcedure = "/kiln.v1.KilnService/GetItemChanges"
+	// KilnServiceListHistoryProcedure is the fully-qualified name of the KilnService's ListHistory RPC.
+	KilnServiceListHistoryProcedure = "/kiln.v1.KilnService/ListHistory"
+	// KilnServiceAddDecisionNoteProcedure is the fully-qualified name of the KilnService's
+	// AddDecisionNote RPC.
+	KilnServiceAddDecisionNoteProcedure = "/kiln.v1.KilnService/AddDecisionNote"
+	// KilnServiceRestoreVersionProcedure is the fully-qualified name of the KilnService's
+	// RestoreVersion RPC.
+	KilnServiceRestoreVersionProcedure = "/kiln.v1.KilnService/RestoreVersion"
 	// KilnServiceWatchItemsProcedure is the fully-qualified name of the KilnService's WatchItems RPC.
 	KilnServiceWatchItemsProcedure = "/kiln.v1.KilnService/WatchItems"
 )
@@ -116,7 +124,8 @@ type KilnServiceClient interface {
 	// worktree, commits, PR, your session ID and transcript path, progress
 	// notes and files. Call it when you start (once you have a branch or
 	// worktree), after each commit, and before you stop. Only the agent holding
-	// the claim, or the user, can call it. It doesn't need a base_revision.
+	// the claim, or the user, can call it. It doesn't need a base_revision and
+	// doesn't change the task's revision, so call it as often as is useful.
 	UpdateWorkState(context.Context, *connect.Request[v1.UpdateWorkStateRequest]) (*connect.Response[v1.UpdateWorkStateResponse], error)
 	// Give up your claim on a task you are not going to finish. The task
 	// returns to STATUS_READY. Record your progress with update_work_state
@@ -124,9 +133,20 @@ type KilnServiceClient interface {
 	ReleaseTask(context.Context, *connect.Request[v1.ReleaseTaskRequest]) (*connect.Response[v1.ReleaseTaskResponse], error)
 	// Get the markdown view of a task with its feature and dependency context.
 	GetTaskContext(context.Context, *connect.Request[v1.GetTaskContextRequest]) (*connect.Response[v1.GetTaskContextResponse], error)
-	// Get every version of an item after the given revision. Use this after a
-	// write is rejected for an outdated revision, to see what changed.
+	// Get the changes to an item after the given revision: who changed what,
+	// with the item as it was after each change. Use this after a write is
+	// rejected for an outdated revision, to see what changed.
 	GetItemChanges(context.Context, *connect.Request[v1.GetItemChangesRequest]) (*connect.Response[v1.GetItemChangesResponse], error)
+	// List an item's history, oldest first: changes and decision notes. Read
+	// the decision notes before changing direction on a task, to see why
+	// things are the way they are.
+	ListHistory(context.Context, *connect.Request[v1.ListHistoryRequest]) (*connect.Response[v1.ListHistoryResponse], error)
+	// Record why a decision was made (e.g. "chose X over Y because Z"), so the
+	// user and later agents can understand it. Notes can't be edited; add a new
+	// one to correct an earlier note.
+	AddDecisionNote(context.Context, *connect.Request[v1.AddDecisionNoteRequest]) (*connect.Response[v1.AddDecisionNoteResponse], error)
+	// Restore an item to an earlier version, as a new revision. User only.
+	RestoreVersion(context.Context, *connect.Request[v1.RestoreVersionRequest]) (*connect.Response[v1.RestoreVersionResponse], error)
 	// Stream every item change, for the GUI. Agents get updates through MCP
 	// resource subscriptions instead.
 	WatchItems(context.Context, *connect.Request[v1.WatchItemsRequest]) (*connect.ServerStreamForClient[v1.WatchItemsResponse], error)
@@ -233,6 +253,24 @@ func NewKilnServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(kilnServiceMethods.ByName("GetItemChanges")),
 			connect.WithClientOptions(opts...),
 		),
+		listHistory: connect.NewClient[v1.ListHistoryRequest, v1.ListHistoryResponse](
+			httpClient,
+			baseURL+KilnServiceListHistoryProcedure,
+			connect.WithSchema(kilnServiceMethods.ByName("ListHistory")),
+			connect.WithClientOptions(opts...),
+		),
+		addDecisionNote: connect.NewClient[v1.AddDecisionNoteRequest, v1.AddDecisionNoteResponse](
+			httpClient,
+			baseURL+KilnServiceAddDecisionNoteProcedure,
+			connect.WithSchema(kilnServiceMethods.ByName("AddDecisionNote")),
+			connect.WithClientOptions(opts...),
+		),
+		restoreVersion: connect.NewClient[v1.RestoreVersionRequest, v1.RestoreVersionResponse](
+			httpClient,
+			baseURL+KilnServiceRestoreVersionProcedure,
+			connect.WithSchema(kilnServiceMethods.ByName("RestoreVersion")),
+			connect.WithClientOptions(opts...),
+		),
 		watchItems: connect.NewClient[v1.WatchItemsRequest, v1.WatchItemsResponse](
 			httpClient,
 			baseURL+KilnServiceWatchItemsProcedure,
@@ -259,6 +297,9 @@ type kilnServiceClient struct {
 	releaseTask      *connect.Client[v1.ReleaseTaskRequest, v1.ReleaseTaskResponse]
 	getTaskContext   *connect.Client[v1.GetTaskContextRequest, v1.GetTaskContextResponse]
 	getItemChanges   *connect.Client[v1.GetItemChangesRequest, v1.GetItemChangesResponse]
+	listHistory      *connect.Client[v1.ListHistoryRequest, v1.ListHistoryResponse]
+	addDecisionNote  *connect.Client[v1.AddDecisionNoteRequest, v1.AddDecisionNoteResponse]
+	restoreVersion   *connect.Client[v1.RestoreVersionRequest, v1.RestoreVersionResponse]
 	watchItems       *connect.Client[v1.WatchItemsRequest, v1.WatchItemsResponse]
 }
 
@@ -337,6 +378,21 @@ func (c *kilnServiceClient) GetItemChanges(ctx context.Context, req *connect.Req
 	return c.getItemChanges.CallUnary(ctx, req)
 }
 
+// ListHistory calls kiln.v1.KilnService.ListHistory.
+func (c *kilnServiceClient) ListHistory(ctx context.Context, req *connect.Request[v1.ListHistoryRequest]) (*connect.Response[v1.ListHistoryResponse], error) {
+	return c.listHistory.CallUnary(ctx, req)
+}
+
+// AddDecisionNote calls kiln.v1.KilnService.AddDecisionNote.
+func (c *kilnServiceClient) AddDecisionNote(ctx context.Context, req *connect.Request[v1.AddDecisionNoteRequest]) (*connect.Response[v1.AddDecisionNoteResponse], error) {
+	return c.addDecisionNote.CallUnary(ctx, req)
+}
+
+// RestoreVersion calls kiln.v1.KilnService.RestoreVersion.
+func (c *kilnServiceClient) RestoreVersion(ctx context.Context, req *connect.Request[v1.RestoreVersionRequest]) (*connect.Response[v1.RestoreVersionResponse], error) {
+	return c.restoreVersion.CallUnary(ctx, req)
+}
+
 // WatchItems calls kiln.v1.KilnService.WatchItems.
 func (c *kilnServiceClient) WatchItems(ctx context.Context, req *connect.Request[v1.WatchItemsRequest]) (*connect.ServerStreamForClient[v1.WatchItemsResponse], error) {
 	return c.watchItems.CallServerStream(ctx, req)
@@ -386,7 +442,8 @@ type KilnServiceHandler interface {
 	// worktree, commits, PR, your session ID and transcript path, progress
 	// notes and files. Call it when you start (once you have a branch or
 	// worktree), after each commit, and before you stop. Only the agent holding
-	// the claim, or the user, can call it. It doesn't need a base_revision.
+	// the claim, or the user, can call it. It doesn't need a base_revision and
+	// doesn't change the task's revision, so call it as often as is useful.
 	UpdateWorkState(context.Context, *connect.Request[v1.UpdateWorkStateRequest]) (*connect.Response[v1.UpdateWorkStateResponse], error)
 	// Give up your claim on a task you are not going to finish. The task
 	// returns to STATUS_READY. Record your progress with update_work_state
@@ -394,9 +451,20 @@ type KilnServiceHandler interface {
 	ReleaseTask(context.Context, *connect.Request[v1.ReleaseTaskRequest]) (*connect.Response[v1.ReleaseTaskResponse], error)
 	// Get the markdown view of a task with its feature and dependency context.
 	GetTaskContext(context.Context, *connect.Request[v1.GetTaskContextRequest]) (*connect.Response[v1.GetTaskContextResponse], error)
-	// Get every version of an item after the given revision. Use this after a
-	// write is rejected for an outdated revision, to see what changed.
+	// Get the changes to an item after the given revision: who changed what,
+	// with the item as it was after each change. Use this after a write is
+	// rejected for an outdated revision, to see what changed.
 	GetItemChanges(context.Context, *connect.Request[v1.GetItemChangesRequest]) (*connect.Response[v1.GetItemChangesResponse], error)
+	// List an item's history, oldest first: changes and decision notes. Read
+	// the decision notes before changing direction on a task, to see why
+	// things are the way they are.
+	ListHistory(context.Context, *connect.Request[v1.ListHistoryRequest]) (*connect.Response[v1.ListHistoryResponse], error)
+	// Record why a decision was made (e.g. "chose X over Y because Z"), so the
+	// user and later agents can understand it. Notes can't be edited; add a new
+	// one to correct an earlier note.
+	AddDecisionNote(context.Context, *connect.Request[v1.AddDecisionNoteRequest]) (*connect.Response[v1.AddDecisionNoteResponse], error)
+	// Restore an item to an earlier version, as a new revision. User only.
+	RestoreVersion(context.Context, *connect.Request[v1.RestoreVersionRequest]) (*connect.Response[v1.RestoreVersionResponse], error)
 	// Stream every item change, for the GUI. Agents get updates through MCP
 	// resource subscriptions instead.
 	WatchItems(context.Context, *connect.Request[v1.WatchItemsRequest], *connect.ServerStream[v1.WatchItemsResponse]) error
@@ -499,6 +567,24 @@ func NewKilnServiceHandler(svc KilnServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(kilnServiceMethods.ByName("GetItemChanges")),
 		connect.WithHandlerOptions(opts...),
 	)
+	kilnServiceListHistoryHandler := connect.NewUnaryHandler(
+		KilnServiceListHistoryProcedure,
+		svc.ListHistory,
+		connect.WithSchema(kilnServiceMethods.ByName("ListHistory")),
+		connect.WithHandlerOptions(opts...),
+	)
+	kilnServiceAddDecisionNoteHandler := connect.NewUnaryHandler(
+		KilnServiceAddDecisionNoteProcedure,
+		svc.AddDecisionNote,
+		connect.WithSchema(kilnServiceMethods.ByName("AddDecisionNote")),
+		connect.WithHandlerOptions(opts...),
+	)
+	kilnServiceRestoreVersionHandler := connect.NewUnaryHandler(
+		KilnServiceRestoreVersionProcedure,
+		svc.RestoreVersion,
+		connect.WithSchema(kilnServiceMethods.ByName("RestoreVersion")),
+		connect.WithHandlerOptions(opts...),
+	)
 	kilnServiceWatchItemsHandler := connect.NewServerStreamHandler(
 		KilnServiceWatchItemsProcedure,
 		svc.WatchItems,
@@ -537,6 +623,12 @@ func NewKilnServiceHandler(svc KilnServiceHandler, opts ...connect.HandlerOption
 			kilnServiceGetTaskContextHandler.ServeHTTP(w, r)
 		case KilnServiceGetItemChangesProcedure:
 			kilnServiceGetItemChangesHandler.ServeHTTP(w, r)
+		case KilnServiceListHistoryProcedure:
+			kilnServiceListHistoryHandler.ServeHTTP(w, r)
+		case KilnServiceAddDecisionNoteProcedure:
+			kilnServiceAddDecisionNoteHandler.ServeHTTP(w, r)
+		case KilnServiceRestoreVersionProcedure:
+			kilnServiceRestoreVersionHandler.ServeHTTP(w, r)
 		case KilnServiceWatchItemsProcedure:
 			kilnServiceWatchItemsHandler.ServeHTTP(w, r)
 		default:
@@ -606,6 +698,18 @@ func (UnimplementedKilnServiceHandler) GetTaskContext(context.Context, *connect.
 
 func (UnimplementedKilnServiceHandler) GetItemChanges(context.Context, *connect.Request[v1.GetItemChangesRequest]) (*connect.Response[v1.GetItemChangesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("kiln.v1.KilnService.GetItemChanges is not implemented"))
+}
+
+func (UnimplementedKilnServiceHandler) ListHistory(context.Context, *connect.Request[v1.ListHistoryRequest]) (*connect.Response[v1.ListHistoryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("kiln.v1.KilnService.ListHistory is not implemented"))
+}
+
+func (UnimplementedKilnServiceHandler) AddDecisionNote(context.Context, *connect.Request[v1.AddDecisionNoteRequest]) (*connect.Response[v1.AddDecisionNoteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("kiln.v1.KilnService.AddDecisionNote is not implemented"))
+}
+
+func (UnimplementedKilnServiceHandler) RestoreVersion(context.Context, *connect.Request[v1.RestoreVersionRequest]) (*connect.Response[v1.RestoreVersionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("kiln.v1.KilnService.RestoreVersion is not implemented"))
 }
 
 func (UnimplementedKilnServiceHandler) WatchItems(context.Context, *connect.Request[v1.WatchItemsRequest], *connect.ServerStream[v1.WatchItemsResponse]) error {
