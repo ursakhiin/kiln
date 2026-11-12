@@ -86,8 +86,30 @@ v1 includes:
 * Web GUI list view with drag-and-drop ranking
 * Web GUI dependency graph
 
+## Build Order
+
+Agent loop first, so the agent workflow can be tested as early as possible:
+
+1. Data model, `.kiln/` file storage and revisions
+2. MCP server (create/read items, `next_task`, claiming, status updates, markdown views)
+3. CLI commands
+4. Web GUI list view with drag-and-drop ranking
+5. Dependency graph view
+6. History extras (version diff/restore) and MCP push notifications
+
+**Dogfooding:** once step 2 works, move these requirements into Kiln items and plan the rest of Kiln's build in Kiln.
+
+# Non-Goals (v1)
+
+* Auth, hosted deployment or multi-user teams
+* Sync with external trackers (GitHub Issues, Jira, Linear, etc.)
+* Launching or orchestrating agents; Kiln only serves the agents that connect to it
+* Time tracking, estimates, due dates or sprints
+* Two-way markdown sync; markdown views are read-only
+* Mobile apps or a desktop wrapper; desktop browser only
+* Code awareness: reading the repo's code, linking commits or verifying that tasks were done
+* Plugins, extensibility or custom fields
+
 # Open Questions
 
-* Build order within the MVP (e.g. MCP + data model → CLI → GUI list → graph)
-* Success criteria
-* Non-goals
+* Success criteria (to be defined after dogfooding begins)
