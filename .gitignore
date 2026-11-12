@@ -1,0 +1,10 @@
+# Build output
+/bin/
+
+# Built web GUI (embedded into the binary); keep the placeholder so go:embed compiles
+/internal/webui/dist/*
+!/internal/webui/dist/.gitkeep
+
+# Kiln runtime files (the .kiln/ text files themselves are committed)
+.kiln/index.db*
+.kiln/daemon.json
