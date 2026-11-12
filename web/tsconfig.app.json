@@ -19,7 +19,7 @@
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
+    "erasableSyntaxOnly": false, // generated protobuf code (src/gen) uses TS enums
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"]

@@ -22,8 +22,9 @@ As an agent, I want to ask Kiln for the next task to work on and claim it so oth
 
 * **Project → Feature → Task.** A single repo can contain multiple projects.
 * **Ideas are draft Features**, not a separate entity. An agent never implements a draft.
-* **Priority** is a single ranked order across all projects in the repo, set by drag-and-drop.
+* **Priority** is a single ranked order of features across all projects in the repo, set by drag-and-drop. Tasks are ranked only within their feature.
 * **Dependencies** can link any feature or task to any other, including across projects. Kiln rejects any dependency that would create a cycle.
+  * Each dependency says when it stops blocking: when the blocking item is `done` (the default) or once it reaches `in review`.
 * **Lifecycle:** `draft → ready → in progress → in review → done`
   * An agent may move work up to `in review`; only the user moves it to `done`.
   * A Feature's status is derived from its Tasks (e.g. `in progress` once any task starts, `in review` when all tasks are in review), and the user can override it.
@@ -36,7 +37,9 @@ As an agent, I want to ask Kiln for the next task to work on and claim it so oth
 
 * Agents interact with Kiln only through its MCP server. They never write Kiln's data files directly.
 * Markdown views are **read-only** and **returned by MCP tools** (e.g. a task with its parent feature context). Kiln does not write markdown files to disk.
-* `next_task` returns the highest-ranked `ready` task that isn't blocked or claimed.
+* `next_task` returns a `ready` task that isn't blocked or claimed, ordered by feature rank and then task rank, with **feature affinity**:
+  * An agent prefers the next task in the feature it is working on.
+  * Other agents prefer features no agent is working on, which spreads agents out and reduces collisions in the same code.
 * **Task claiming:** an agent claims a task when it starts. Claimed tasks are skipped by `next_task`, and claims expire if the agent stops responding.
 * **Staleness:**
   * Every item has a revision number, and each markdown view includes it.
