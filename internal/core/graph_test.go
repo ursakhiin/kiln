@@ -58,6 +58,24 @@ func TestWouldCreateCycleTerminatesOnExistingCycle(t *testing.T) {
 	}
 }
 
+func TestHasCycle(t *testing.T) {
+	// F1 has T1; F2 has no tasks and depends on T1.
+	g := mapGraph{
+		"F1": {Id: "F1", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{}}},
+		"T1": {Id: "T1", Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{FeatureId: "F1"}}},
+		"F2": {Id: "F2", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{
+			DependsOn: []*kilnv1.Dependency{{ItemId: "T1"}}}}},
+	}
+	if core.HasCycle([]string{"F2"}, g) {
+		t.Error("HasCycle reported a cycle in an acyclic graph")
+	}
+	// Moving T1 into F2 makes F2 wait on T1, which waits on F2.
+	g["T1"].GetTask().FeatureId = "F2"
+	if !core.HasCycle([]string{"F2", "T1"}, g) {
+		t.Error("HasCycle missed the cycle after reparenting T1")
+	}
+}
+
 // mapGraph is a core.Graph over an in-memory set of items.
 type mapGraph map[string]*kilnv1.Item
 

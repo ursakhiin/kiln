@@ -71,6 +71,8 @@ func TestCheckUpdate(t *testing.T) {
 		"empty title":              {user, tk, untitled, []string{"title"}, core.ErrInvalidArgument},
 		"agent promotes draft":     {agent, draftFeature, readyFeature, []string{"feature.draft"}, core.ErrPermissionDenied},
 		"user promotes draft":      {user, draftFeature, readyFeature, []string{"feature.draft"}, nil},
+		"empty project_id":         {user, readyFeature, newFeature(&kilnv1.Feature{}), []string{"feature.project_id"}, core.ErrInvalidArgument},
+		"empty feature_id":         {user, tk, newTask(&kilnv1.Task{}), []string{"task.feature_id"}, core.ErrInvalidArgument},
 		"agent demotes to a draft": {agent, readyFeature, draftFeature, []string{"feature.draft"}, nil},
 	} {
 		err := core.CheckUpdate(c.actor, c.current, c.updated, c.paths)

@@ -90,6 +90,14 @@ func CheckUpdate(actor kilnv1.ActorType, current, updated *kilnv1.Item, paths []
 			if strings.TrimSpace(updated.GetTitle()) == "" {
 				return invalid("title is required")
 			}
+		case "feature.project_id":
+			if updated.GetFeature().GetProjectId() == "" {
+				return invalid("feature needs a project_id")
+			}
+		case "task.feature_id":
+			if updated.GetTask().GetFeatureId() == "" {
+				return invalid("task needs a feature_id")
+			}
 		case "feature.draft":
 			promoting := current.GetFeature().GetDraft() && !updated.GetFeature().GetDraft()
 			if promoting && actor == kilnv1.ActorType_ACTOR_TYPE_AGENT {

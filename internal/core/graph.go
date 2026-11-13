@@ -82,3 +82,27 @@ func WouldCreateCycle(itemID, dependsOnID string, g Graph) bool {
 	}
 	return false
 }
+
+// HasCycle reports whether any dependency held by one of the items in ids
+// lies on a cycle. Every cycle passes through a dependency edge, because
+// parent edges alone are acyclic, so checking each dependency is enough.
+// Call it with every item a change could have affected, e.g. after a task
+// moves to another feature.
+func HasCycle(ids []string, g Graph) bool {
+	for _, id := range ids {
+		var deps []*kilnv1.Dependency
+		item := g.Item(id)
+		switch k := item.GetKind().(type) {
+		case *kilnv1.Item_Feature:
+			deps = k.Feature.GetDependsOn()
+		case *kilnv1.Item_Task:
+			deps = k.Task.GetDependsOn()
+		}
+		for _, d := range deps {
+			if WouldCreateCycle(id, d.GetItemId(), g) {
+				return true
+			}
+		}
+	}
+	return false
+}
