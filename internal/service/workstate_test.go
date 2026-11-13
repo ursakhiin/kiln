@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
 	"github.com/ursakhiin/kiln/internal/service"
@@ -175,7 +176,9 @@ func TestWorkStateRecordedInNextEntry(t *testing.T) {
 	}
 	es := taskHistory(t, repo, t1)
 	last := es[len(es)-1].GetChange()
-	if want := []string{"task.status", "task.work_state.branch"}; !slices.Equal(last.GetChangedFields(), want) {
+	// session is set from a1's connection although branch was the only path.
+	want := []string{"task.status", "task.work_state.branch", "task.work_state.session"}
+	if !slices.Equal(last.GetChangedFields(), want) {
 		t.Fatalf("changed_fields = %v, want %v", last.GetChangedFields(), want)
 	}
 	if got := last.GetSnapshot().GetTask().GetWorkState().GetBranch(); got != "kiln/t1" {
@@ -202,7 +205,6 @@ func TestWorkStateRecordedOnRelease(t *testing.T) {
 	if n := len(workStateEntries(t, repo, t1)); n != 0 {
 		t.Fatalf("%d WORK_STATE_UPDATED entries, want 0", n)
 	}
-
 }
 
 func TestWorkStateRecordedOnExpiry(t *testing.T) {
@@ -262,5 +264,100 @@ func TestResumedContextHasWorkState(t *testing.T) {
 	resp := next(t, svc, agent("a2"))
 	if !strings.Contains(resp.GetContext(), "- Branch: `kiln/t1`") {
 		t.Fatalf("context has no branch:\n%s", resp.GetContext())
+	}
+}
+
+func TestWorkStateForcedSessionIsRecorded(t *testing.T) {
+	svc, clk, repo := newService(t, oneTask()...)
+	claim(t, svc, agent("a1"), t1)
+	recordBranch(t, svc, agent("a1"), t1)
+	clk.Advance(31 * time.Minute)
+
+	other := service.WithCaller(context.Background(), service.Caller{
+		Actor: kilnv1.ActorType_ACTOR_TYPE_AGENT, AgentID: "a2", Host: "other-host", HostVersion: "2.0",
+	})
+	rev := claim(t, svc, other, t1).GetTask().GetItem().GetRevision()
+	if _, err := updateWS(svc, other, t1, &kilnv1.WorkState{Branch: "kiln/t1-b"}, "branch"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.SetStatus(other, setStatus(t1, rev, inReview)); err != nil {
+		t.Fatal(err)
+	}
+	es := taskHistory(t, repo, t1)
+	last := es[len(es)-1].GetChange()
+	want := []string{"task.status", "task.work_state.branch", "task.work_state.session"}
+	if !slices.Equal(last.GetChangedFields(), want) {
+		t.Fatalf("changed_fields = %v, want %v", last.GetChangedFields(), want)
+	}
+}
+
+func TestWorkStateUserUpdateKeepsAgent(t *testing.T) {
+	svc, clk, repo := newService(t, oneTask()...)
+	claim(t, svc, agent("a1"), t1)
+	if _, err := updateWS(svc, agent("a1"), t1, &kilnv1.WorkState{Branch: "kiln/t1"}, "branch"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := updateWS(svc, user, t1, &kilnv1.WorkState{Progress: "note"}, "progress"); err != nil {
+		t.Fatal(err)
+	}
+	clk.Advance(31 * time.Minute)
+	if _, err := svc.GetItem(user, &kilnv1.GetItemRequest{Id: id(1)}); err != nil {
+		t.Fatal(err)
+	}
+	es := workStateEntries(t, repo, t1)
+	if len(es) != 1 {
+		t.Fatalf("%d WORK_STATE_UPDATED entries, want 1", len(es))
+	}
+	if a := es[0].GetActor(); a.GetType() != kilnv1.ActorType_ACTOR_TYPE_AGENT || a.GetAgentId() != "a1" {
+		t.Fatalf("actor = %v", a)
+	}
+	// session is set from a1's connection although branch was the only path.
+	want := []string{"task.work_state.branch", "task.work_state.progress", "task.work_state.session"}
+	if got := es[0].GetChange().GetChangedFields(); !slices.Equal(got, want) {
+		t.Fatalf("changed_fields = %v, want %v", got, want)
+	}
+}
+
+func TestWorkStateUserOnlyUpdateIsUsers(t *testing.T) {
+	svc, clk, repo := newService(t, oneTask()...)
+	claim(t, svc, agent("a1"), t1)
+	if _, err := updateWS(svc, user, t1, &kilnv1.WorkState{Progress: "note"}, "progress"); err != nil {
+		t.Fatal(err)
+	}
+	clk.Advance(31 * time.Minute)
+	if _, err := svc.GetItem(user, &kilnv1.GetItemRequest{Id: id(1)}); err != nil {
+		t.Fatal(err)
+	}
+	es := workStateEntries(t, repo, t1)
+	if len(es) != 1 {
+		t.Fatalf("%d WORK_STATE_UPDATED entries, want 1", len(es))
+	}
+	if a := es[0].GetActor(); a.GetType() != kilnv1.ActorType_ACTOR_TYPE_USER || a.GetAgentId() != "" || a.GetSession() != nil {
+		t.Fatalf("actor = %v", a)
+	}
+}
+
+func TestRestartIgnoresUpdateTimeOnly(t *testing.T) {
+	svc, clk, repo := newService(t, oneTask()...)
+	rev := claim(t, svc, agent("a1"), t1).GetTask().GetItem().GetRevision()
+	recordBranch(t, svc, agent("a1"), t1)
+	if _, err := svc.SetStatus(agent("a1"), setStatus(t1, rev, inReview)); err != nil {
+		t.Fatal(err)
+	}
+	// Only the work state's update_time changes on disk.
+	st := openStore(t, repo)
+	saved, err := st.GetItem(id(t1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	clk.Advance(time.Hour)
+	saved.GetTask().GetWorkState().UpdateTime = timestamppb.New(clk.Now())
+	if err := st.PutItem(saved); err != nil {
+		t.Fatal(err)
+	}
+
+	restart(t, repo, clk)
+	if n := len(workStateEntries(t, repo, t1)); n != 0 {
+		t.Fatalf("%d WORK_STATE_UPDATED entries, want 0", n)
 	}
 }

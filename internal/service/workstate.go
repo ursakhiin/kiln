@@ -24,9 +24,11 @@ var workStateFields = []protoreflect.Name{
 const workStatePrefix = "task.work_state."
 
 // pendingWorkState is the work state of a task changed since its last
-// history entry: the agent that changed it last, and the changed item field
-// paths (e.g. "task.work_state.branch").
+// history entry: who changed it (the agent that changed it last, or the user
+// if no agent did), and the changed item field paths (e.g.
+// "task.work_state.branch").
 type pendingWorkState struct {
+	actor   kilnv1.ActorType
 	agentID string
 	fields  map[string]bool
 }
@@ -93,12 +95,17 @@ func (s *Service) UpdateWorkState(ctx context.Context, req *kilnv1.UpdateWorkSta
 
 	p := s.pending[updated.GetId()]
 	if p == nil {
-		p = &pendingWorkState{fields: map[string]bool{}}
+		p = &pendingWorkState{actor: caller.Actor, fields: map[string]bool{}}
 		s.pending[updated.GetId()] = p
 	}
-	p.agentID = caller.AgentID
+	if caller.Actor == kilnv1.ActorType_ACTOR_TYPE_AGENT {
+		p.actor, p.agentID = caller.Actor, caller.AgentID
+	}
 	for _, name := range names {
 		p.fields[workStatePrefix+string(name)] = true
+	}
+	if !proto.Equal(ws.GetSession(), task.GetTask().GetWorkState().GetSession()) {
+		p.fields[workStatePrefix+"session"] = true
 	}
 	return &kilnv1.UpdateWorkStateResponse{Task: s.info(updated)}, nil
 }
@@ -137,23 +144,32 @@ func (s *Service) takePending(taskID string) []string {
 }
 
 // recordPendingWorkState appends a WORK_STATE_UPDATED entry for taskID's
-// pending work state, if any, attributed to the agent that changed it.
+// pending work state, if any, attributed to whoever changed it.
 func (s *Service) recordPendingWorkState(taskID string) {
 	p, task := s.pending[taskID], s.items[taskID]
 	if p == nil || task == nil {
 		return
 	}
-	s.appendWorkStateEntry(task, p.agentID, s.takePending(taskID))
+	actor := &kilnv1.Actor{Type: kilnv1.ActorType_ACTOR_TYPE_USER}
+	if p.actor == kilnv1.ActorType_ACTOR_TYPE_AGENT {
+		actor = agentWorkStateActor(task, p.agentID)
+	}
+	s.appendWorkStateEntry(task, actor, s.takePending(taskID))
+}
+
+// agentWorkStateActor returns the agent agentID as the actor of a
+// WORK_STATE_UPDATED entry for task, with the work state's session.
+func agentWorkStateActor(task *kilnv1.Item, agentID string) *kilnv1.Actor {
+	actor := &kilnv1.Actor{Type: kilnv1.ActorType_ACTOR_TYPE_AGENT, AgentId: agentID}
+	if sess := task.GetTask().GetWorkState().GetSession(); sess != nil {
+		actor.Session = proto.Clone(sess).(*kilnv1.AgentSession)
+	}
+	return actor
 }
 
 // appendWorkStateEntry appends a WORK_STATE_UPDATED entry for task with the
-// given changed fields, attributed to agentID and the work state's session.
-func (s *Service) appendWorkStateEntry(task *kilnv1.Item, agentID string, fields []string) {
-	ws := task.GetTask().GetWorkState()
-	actor := &kilnv1.Actor{Type: kilnv1.ActorType_ACTOR_TYPE_AGENT, AgentId: agentID}
-	if ws.GetSession() != nil {
-		actor.Session = proto.Clone(ws.GetSession()).(*kilnv1.AgentSession)
-	}
+// given changed fields.
+func (s *Service) appendWorkStateEntry(task *kilnv1.Item, actor *kilnv1.Actor, fields []string) {
 	s.appendHistory(actor, task.GetId(), timestamppb.New(s.now()), &kilnv1.ChangeEvent{
 		Type:          kilnv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED,
 		Revision:      task.GetRevision(),
@@ -188,10 +204,12 @@ func (s *Service) reconcileWorkState() {
 		if recorded == nil {
 			recorded = &kilnv1.WorkState{}
 		}
-		if proto.Equal(ws, recorded) {
+		// update_time alone isn't a change worth recording.
+		fields := workStateDiff(recorded, ws)
+		if len(fields) == 0 {
 			continue
 		}
-		s.appendWorkStateEntry(item, "", workStateDiff(recorded, ws))
+		s.appendWorkStateEntry(item, agentWorkStateActor(item, ""), fields)
 	}
 }
 
