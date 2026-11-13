@@ -11,8 +11,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/service"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/service"
 )
 
 // noTaskText is the text of an empty next_task result.
@@ -45,7 +45,7 @@ func successResult(resp proto.Message) *sdk.CallToolResult {
 	text := string(js)
 	if ctx := contextText(resp); ctx != "" {
 		text = ctx
-	} else if next, ok := resp.(*kilnv1.NextTaskResponse); ok && next.GetTask() == nil {
+	} else if next, ok := resp.(*underdrawv1.NextTaskResponse); ok && next.GetTask() == nil {
 		text = noTaskText
 	}
 	return &sdk.CallToolResult{

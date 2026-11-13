@@ -18,9 +18,9 @@ import (
 	"connectrpc.com/connect"
 	sdk "github.com/modelcontextprotocol/go-sdk/mcp"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/gen/go/kiln/v1/kilnv1connect"
-	"github.com/ursakhiin/kiln/internal/daemon"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/gen/go/underdraw/v1/underdrawv1connect"
+	"github.com/ursakhiin/underdraw/internal/daemon"
 )
 
 func TestFindRepoRoot(t *testing.T) {
@@ -74,7 +74,7 @@ func TestRun(t *testing.T) {
 		t.Fatal("timed out waiting for ready")
 	}
 
-	runFile := filepath.Join(repo, ".kiln", "run", "daemon.json")
+	runFile := filepath.Join(repo, ".underdraw", "run", "daemon.json")
 	data, err := os.ReadFile(runFile)
 	if err != nil {
 		t.Fatal(err)
@@ -82,7 +82,7 @@ func TestRun(t *testing.T) {
 	if want := `"addr":"` + addr + `"`; !strings.Contains(string(data), want) {
 		t.Errorf("daemon.json = %s; want it to contain %s", data, want)
 	}
-	gi, err := os.ReadFile(filepath.Join(repo, ".kiln", ".gitignore"))
+	gi, err := os.ReadFile(filepath.Join(repo, ".underdraw", ".gitignore"))
 	if err != nil || string(gi) != "run/\n" {
 		t.Errorf(".gitignore = %q, %v", gi, err)
 	}
@@ -101,10 +101,10 @@ func TestRun(t *testing.T) {
 	}
 	_ = sess.Close()
 
-	api := kilnv1connect.NewKilnServiceClient(http.DefaultClient, "http://"+addr)
-	_, err = api.CreateItem(ctx, connect.NewRequest(&kilnv1.CreateItemRequest{Item: &kilnv1.Item{
+	api := underdrawv1connect.NewUnderdrawServiceClient(http.DefaultClient, "http://"+addr)
+	_, err = api.CreateItem(ctx, connect.NewRequest(&underdrawv1.CreateItemRequest{Item: &underdrawv1.Item{
 		Title: "P",
-		Kind:  &kilnv1.Item_Project{Project: &kilnv1.Project{}},
+		Kind:  &underdrawv1.Item_Project{Project: &underdrawv1.Project{}},
 	}}))
 	if err != nil {
 		t.Errorf("CreateItem: %v", err)
@@ -177,7 +177,7 @@ func TestRejectsNonLocalHost(t *testing.T) {
 		{"localhost", http.StatusOK},
 		{"[::1]:" + port, http.StatusOK},
 	} {
-		req, err := http.NewRequest(http.MethodPost, "http://"+addr+kilnv1connect.KilnServiceListItemsProcedure, strings.NewReader("{}"))
+		req, err := http.NewRequest(http.MethodPost, "http://"+addr+underdrawv1connect.UnderdrawServiceListItemsProcedure, strings.NewReader("{}"))
 		if err != nil {
 			t.Fatal(err)
 		}

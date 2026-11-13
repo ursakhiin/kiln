@@ -14,10 +14,10 @@ import (
 
 	"github.com/gofrs/flock"
 
-	"github.com/ursakhiin/kiln/internal/api"
-	kilnmcp "github.com/ursakhiin/kiln/internal/mcp"
-	"github.com/ursakhiin/kiln/internal/service"
-	"github.com/ursakhiin/kiln/internal/store"
+	"github.com/ursakhiin/underdraw/internal/api"
+	underdrawmcp "github.com/ursakhiin/underdraw/internal/mcp"
+	"github.com/ursakhiin/underdraw/internal/service"
+	"github.com/ursakhiin/underdraw/internal/store"
 )
 
 // DefaultAddr is where the daemon listens unless told otherwise. It is
@@ -25,7 +25,7 @@ import (
 const DefaultAddr = "127.0.0.1:7477"
 
 // ErrAlreadyRunning is returned by Run when another daemon holds the repo's lock.
-var ErrAlreadyRunning = errors.New("kiln serve is already running for this repo")
+var ErrAlreadyRunning = errors.New("underdraw serve is already running for this repo")
 
 const shutdownGrace = 5 * time.Second
 
@@ -74,12 +74,12 @@ func Run(ctx context.Context, cfg Config, ready func(addr string)) error {
 		return err
 	}
 
-	kilnDir := filepath.Join(cfg.RepoRoot, ".kiln")
-	runDir := filepath.Join(kilnDir, "run")
+	underdrawDir := filepath.Join(cfg.RepoRoot, ".underdraw")
+	runDir := filepath.Join(underdrawDir, "run")
 	if err := os.MkdirAll(runDir, 0o755); err != nil {
 		return err
 	}
-	if err := writeIfMissing(filepath.Join(kilnDir, ".gitignore"), "run/\n"); err != nil {
+	if err := writeIfMissing(filepath.Join(underdrawDir, ".gitignore"), "run/\n"); err != nil {
 		return err
 	}
 
@@ -127,14 +127,14 @@ func Run(ctx context.Context, cfg Config, ready func(addr string)) error {
 	defer func() { _ = os.Remove(runFile) }()
 
 	mux := http.NewServeMux()
-	mux.Handle("/mcp", kilnmcp.NewHandler(kilnmcp.NewServer(svc, cfg.Version)))
+	mux.Handle("/mcp", underdrawmcp.NewHandler(underdrawmcp.NewServer(svc, cfg.Version)))
 	apiPath, apiHandler := api.NewHandler(svc)
 	mux.Handle(apiPath, apiHandler)
 
 	srv := &http.Server{Handler: localHostOnly(mux)}
 	serveErr := make(chan error, 1)
 	go func() { serveErr <- srv.Serve(ln) }()
-	logger.Info("kiln serving", "repo", cfg.RepoRoot, "addr", bound)
+	logger.Info("underdraw serving", "repo", cfg.RepoRoot, "addr", bound)
 	if ready != nil {
 		ready(bound)
 	}

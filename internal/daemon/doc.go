@@ -1,2 +1,2 @@
-// Package daemon manages the kiln serve lifecycle: port and PID discovery and auto-start.
+// Package daemon manages the underdraw serve lifecycle: port and PID discovery and auto-start.
 package daemon

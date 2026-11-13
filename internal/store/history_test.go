@@ -9,26 +9,26 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
 )
 
-func changeEntry(id, itemID string, rev int64) *kilnv1.HistoryEntry {
-	return &kilnv1.HistoryEntry{
+func changeEntry(id, itemID string, rev int64) *underdrawv1.HistoryEntry {
+	return &underdrawv1.HistoryEntry{
 		Id: id, ItemId: itemID,
-		Actor: &kilnv1.Actor{Type: kilnv1.ActorType_ACTOR_TYPE_USER},
-		Kind: &kilnv1.HistoryEntry_Change{Change: &kilnv1.ChangeEvent{
-			Type: kilnv1.ChangeType_CHANGE_TYPE_UPDATED, Revision: rev, ChangedFields: []string{"title"},
-			Snapshot: &kilnv1.Item{Id: itemID, Revision: rev, Title: "Sync engine"},
+		Actor: &underdrawv1.Actor{Type: underdrawv1.ActorType_ACTOR_TYPE_USER},
+		Kind: &underdrawv1.HistoryEntry_Change{Change: &underdrawv1.ChangeEvent{
+			Type: underdrawv1.ChangeType_CHANGE_TYPE_UPDATED, Revision: rev, ChangedFields: []string{"title"},
+			Snapshot: &underdrawv1.Item{Id: itemID, Revision: rev, Title: "Sync engine"},
 		}},
 	}
 }
 
-func noteEntry(id, itemID string) *kilnv1.HistoryEntry {
-	return &kilnv1.HistoryEntry{
+func noteEntry(id, itemID string) *underdrawv1.HistoryEntry {
+	return &underdrawv1.HistoryEntry{
 		Id: id, ItemId: itemID,
-		Actor: &kilnv1.Actor{Type: kilnv1.ActorType_ACTOR_TYPE_AGENT, AgentId: "session-1"},
-		Kind:  &kilnv1.HistoryEntry_Note{Note: &kilnv1.DecisionNote{Body: "Chose X because Y", ItemRevision: 2}},
+		Actor: &underdrawv1.Actor{Type: underdrawv1.ActorType_ACTOR_TYPE_AGENT, AgentId: "session-1"},
+		Kind:  &underdrawv1.HistoryEntry_Note{Note: &underdrawv1.DecisionNote{Body: "Chose X because Y", ItemRevision: 2}},
 	}
 }
 
@@ -36,7 +36,7 @@ func TestHistoryAppendAndList(t *testing.T) {
 	s, _ := openStore(t)
 	itemID := core.NewID()
 	first, second, third := changeEntry(core.NewID(), itemID, 1), noteEntry(core.NewID(), itemID), changeEntry(core.NewID(), itemID, 2)
-	for _, e := range []*kilnv1.HistoryEntry{third, first, second} {
+	for _, e := range []*underdrawv1.HistoryEntry{third, first, second} {
 		if err := s.AppendHistory(e); err != nil {
 			t.Fatal(err)
 		}
@@ -45,7 +45,7 @@ func TestHistoryAppendAndList(t *testing.T) {
 	if err != nil || len(fileErrs) != 0 {
 		t.Fatalf("ListHistory: err=%v fileErrs=%v", err, fileErrs)
 	}
-	want := []*kilnv1.HistoryEntry{first, second, third}
+	want := []*underdrawv1.HistoryEntry{first, second, third}
 	if len(entries) != len(want) {
 		t.Fatalf("got %d entries, want %d", len(entries), len(want))
 	}
@@ -100,11 +100,11 @@ func TestListHistoryReportsBadFiles(t *testing.T) {
 	if err := s.AppendHistory(misplaced); err != nil {
 		t.Fatal(err)
 	}
-	data, err := os.ReadFile(filepath.Join(root, ".kiln", "history", itemB, misplaced.Id+".json"))
+	data, err := os.ReadFile(filepath.Join(root, ".underdraw", "history", itemB, misplaced.Id+".json"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, ".kiln", "history", itemA, misplaced.Id+".json"), data, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, ".underdraw", "history", itemA, misplaced.Id+".json"), data, 0o644); err != nil {
 		t.Fatal(err)
 	}
 	entries, fileErrs, err := s.ListHistory(itemA)

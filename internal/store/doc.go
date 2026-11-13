@@ -1,2 +1,2 @@
-// Package store reads and writes the .kiln/ text files that are Kiln's source of truth, using atomic writes.
+// Package store reads and writes the .underdraw/ text files that are Underdraw's source of truth, using atomic writes.
 package store

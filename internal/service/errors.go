@@ -6,13 +6,13 @@ import (
 
 	"connectrpc.com/connect"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
 )
 
 // ConflictError is returned for a stale base_revision; it matches
 // core.ErrRevisionConflict. Current is the item as it is now.
-type ConflictError struct{ Current *kilnv1.ItemInfo }
+type ConflictError struct{ Current *underdrawv1.ItemInfo }
 
 func (e *ConflictError) Error() string {
 	return fmt.Sprintf("revision conflict: item %s is at revision %d",

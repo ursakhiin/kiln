@@ -22,7 +22,7 @@ func marshal(m proto.Message) ([]byte, error) {
 // protojson deliberately adds extra spaces that vary between builds of the
 // binary ("Do not depend on the output being stable"); json.Indent drops all
 // whitespace between tokens before re-indenting, so rebuilding or upgrading
-// Kiln doesn't rewrite .kiln/ files with whitespace-only changes.
+// Underdraw doesn't rewrite .underdraw/ files with whitespace-only changes.
 func normalizeJSON(raw []byte) ([]byte, error) {
 	var out bytes.Buffer
 	if err := json.Indent(&out, raw, "", "  "); err != nil {

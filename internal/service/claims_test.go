@@ -9,20 +9,20 @@ import (
 
 	"connectrpc.com/connect"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/service"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/service"
 )
 
 const (
-	ready      = kilnv1.Status_STATUS_READY
-	inProgress = kilnv1.Status_STATUS_IN_PROGRESS
-	inReview   = kilnv1.Status_STATUS_IN_REVIEW
+	ready      = underdrawv1.Status_STATUS_READY
+	inProgress = underdrawv1.Status_STATUS_IN_PROGRESS
+	inReview   = underdrawv1.Status_STATUS_IN_REVIEW
 )
 
 // next calls NextTask for ctx and fails the test on error.
-func next(t *testing.T, svc *service.Service, ctx context.Context) *kilnv1.NextTaskResponse {
+func next(t *testing.T, svc *service.Service, ctx context.Context) *underdrawv1.NextTaskResponse {
 	t.Helper()
-	resp, err := svc.NextTask(ctx, &kilnv1.NextTaskRequest{})
+	resp, err := svc.NextTask(ctx, &underdrawv1.NextTaskRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,9 +35,9 @@ func nextID(t *testing.T, svc *service.Service, ctx context.Context) string {
 	return next(t, svc, ctx).GetTask().GetItem().GetId()
 }
 
-func claim(t *testing.T, svc *service.Service, ctx context.Context, n int) *kilnv1.ClaimTaskResponse {
+func claim(t *testing.T, svc *service.Service, ctx context.Context, n int) *underdrawv1.ClaimTaskResponse {
 	t.Helper()
-	resp, err := svc.ClaimTask(ctx, &kilnv1.ClaimTaskRequest{Id: id(n)})
+	resp, err := svc.ClaimTask(ctx, &underdrawv1.ClaimTaskRequest{Id: id(n)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,8 +45,8 @@ func claim(t *testing.T, svc *service.Service, ctx context.Context, n int) *kiln
 }
 
 // oneTask is project 1, feature 2 and READY task 3.
-func oneTask() []*kilnv1.Item {
-	return []*kilnv1.Item{proj(1), feat(2, 1, "a"), task(3, 2, "a", ready)}
+func oneTask() []*underdrawv1.Item {
+	return []*underdrawv1.Item{proj(1), feat(2, 1, "a"), task(3, 2, "a", ready)}
 }
 
 func TestNextTaskSpreadsAgents(t *testing.T) {
@@ -100,18 +100,18 @@ func TestNextTaskSkips(t *testing.T) {
 	svc, _, _ := newService(t,
 		proj(1), proj(6),
 		feat(fOK, 1, "a"), draftFeature,
-		feat(fBlocked, 1, "c", dep(tDraft, kilnv1.BlockUntil_BLOCK_UNTIL_DONE)),
+		feat(fBlocked, 1, "c", dep(tDraft, underdrawv1.BlockUntil_BLOCK_UNTIL_DONE)),
 		feat(fOther, 6, "d"),
 		task(tDraftFeature, fDraft, "a", ready),
-		task(tBlocked, fOK, "a", ready, dep(tDraft, kilnv1.BlockUntil_BLOCK_UNTIL_DONE)),
+		task(tBlocked, fOK, "a", ready, dep(tDraft, underdrawv1.BlockUntil_BLOCK_UNTIL_DONE)),
 		task(tBlockedFeature, fBlocked, "a", ready),
 		task(tClaimed, fOK, "b", ready),
-		task(tDraft, fOK, "c", kilnv1.Status_STATUS_DRAFT),
+		task(tDraft, fOK, "c", underdrawv1.Status_STATUS_DRAFT),
 		task(tOtherProject, fOther, "a", ready),
 	)
 	claim(t, svc, agent("a2"), tClaimed)
 
-	resp, err := svc.NextTask(agent("a1"), &kilnv1.NextTaskRequest{ProjectId: id(1)})
+	resp, err := svc.NextTask(agent("a1"), &underdrawv1.NextTaskRequest{ProjectId: id(1)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestNextTaskSkips(t *testing.T) {
 		t.Fatalf("got %q, want %q", got, id(tOtherProject))
 	}
 
-	_, err = svc.NextTask(agent("a1"), &kilnv1.NextTaskRequest{ProjectId: "nope"})
+	_, err = svc.NextTask(agent("a1"), &underdrawv1.NextTaskRequest{ProjectId: "nope"})
 	wantCode(t, err, connect.CodeInvalidArgument)
 }
 
@@ -160,7 +160,7 @@ func TestClaimRenews(t *testing.T) {
 		t.Fatalf("a1 got %q", got)
 	}
 	clk.Advance(20 * time.Minute)
-	if _, err := svc.GetItem(agent("a1"), &kilnv1.GetItemRequest{Id: id(1)}); err != nil {
+	if _, err := svc.GetItem(agent("a1"), &underdrawv1.GetItemRequest{Id: id(1)}); err != nil {
 		t.Fatal(err)
 	}
 	clk.Advance(20 * time.Minute)
@@ -175,27 +175,27 @@ func TestClaimRenews(t *testing.T) {
 func TestClaimTask(t *testing.T) {
 	const blocked = 4
 	svc, _, _ := newService(t, append(oneTask(),
-		task(blocked, 2, "b", ready, dep(3, kilnv1.BlockUntil_BLOCK_UNTIL_DONE)))...)
+		task(blocked, 2, "b", ready, dep(3, underdrawv1.BlockUntil_BLOCK_UNTIL_DONE)))...)
 	resp := claim(t, svc, agent("a1"), 3)
 	if resp.GetTask().GetStatus() != inProgress || !strings.HasPrefix(resp.GetContext(), "# Task: ") {
 		t.Fatalf("got %v", resp)
 	}
 
-	_, err := svc.ClaimTask(agent("a2"), &kilnv1.ClaimTaskRequest{Id: id(3)})
+	_, err := svc.ClaimTask(agent("a2"), &underdrawv1.ClaimTaskRequest{Id: id(3)})
 	wantCode(t, err, connect.CodeFailedPrecondition)
 
-	_, err = svc.ClaimTask(agent("a2"), &kilnv1.ClaimTaskRequest{Id: id(blocked)})
+	_, err = svc.ClaimTask(agent("a2"), &underdrawv1.ClaimTaskRequest{Id: id(blocked)})
 	wantCode(t, err, connect.CodeFailedPrecondition)
 	if !strings.Contains(err.Error(), "blocked") {
 		t.Fatalf("err = %v", err)
 	}
 
-	_, err = svc.NextTask(user, &kilnv1.NextTaskRequest{})
+	_, err = svc.NextTask(user, &underdrawv1.NextTaskRequest{})
 	wantCode(t, err, connect.CodeFailedPrecondition)
-	_, err = svc.ClaimTask(user, &kilnv1.ClaimTaskRequest{Id: id(3)})
+	_, err = svc.ClaimTask(user, &underdrawv1.ClaimTaskRequest{Id: id(3)})
 	wantCode(t, err, connect.CodeFailedPrecondition)
 
-	_, err = svc.ClaimTask(agent("a1"), &kilnv1.ClaimTaskRequest{Id: id(2)})
+	_, err = svc.ClaimTask(agent("a1"), &underdrawv1.ClaimTaskRequest{Id: id(2)})
 	wantCode(t, err, connect.CodeInvalidArgument)
 
 	again := claim(t, svc, agent("a1"), 3)
@@ -209,7 +209,7 @@ func TestClaimTaskDraftFeature(t *testing.T) {
 	draft := feat(2, 1, "a")
 	draft.GetFeature().Draft = true
 	svc, _, _ := newService(t, proj(1), draft, task(3, 2, "a", ready))
-	_, err := svc.ClaimTask(agent("a1"), &kilnv1.ClaimTaskRequest{Id: id(3)})
+	_, err := svc.ClaimTask(agent("a1"), &underdrawv1.ClaimTaskRequest{Id: id(3)})
 	wantCode(t, err, connect.CodeFailedPrecondition)
 	if !strings.Contains(err.Error(), "draft") {
 		t.Fatalf("err = %v", err)
@@ -219,21 +219,21 @@ func TestClaimTaskDraftFeature(t *testing.T) {
 func TestReleaseTask(t *testing.T) {
 	svc, _, _ := newService(t, oneTask()...)
 	claim(t, svc, agent("a1"), 3)
-	resp, err := svc.ReleaseTask(agent("a1"), &kilnv1.ReleaseTaskRequest{Id: id(3)})
+	resp, err := svc.ReleaseTask(agent("a1"), &underdrawv1.ReleaseTaskRequest{Id: id(3)})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if resp.GetTask().GetStatus() != ready || resp.GetTask().GetClaim() != nil {
 		t.Fatalf("got %v", resp.GetTask())
 	}
-	_, err = svc.ReleaseTask(agent("a1"), &kilnv1.ReleaseTaskRequest{Id: id(3)})
+	_, err = svc.ReleaseTask(agent("a1"), &underdrawv1.ReleaseTaskRequest{Id: id(3)})
 	wantCode(t, err, connect.CodeFailedPrecondition)
 
 	claim(t, svc, agent("a1"), 3)
-	_, err = svc.ReleaseTask(agent("a2"), &kilnv1.ReleaseTaskRequest{Id: id(3)})
+	_, err = svc.ReleaseTask(agent("a2"), &underdrawv1.ReleaseTaskRequest{Id: id(3)})
 	wantCode(t, err, connect.CodeFailedPrecondition)
 
-	resp, err = svc.ReleaseTask(user, &kilnv1.ReleaseTaskRequest{Id: id(3)})
+	resp, err = svc.ReleaseTask(user, &underdrawv1.ReleaseTaskRequest{Id: id(3)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -267,19 +267,19 @@ func TestSetStatusClaimRules(t *testing.T) {
 func TestDeleteClaimedTask(t *testing.T) {
 	svc, _, _ := newService(t, oneTask()...)
 	rev := claim(t, svc, agent("a1"), 3).GetTask().GetItem().GetRevision()
-	_, err := svc.DeleteItem(user, &kilnv1.DeleteItemRequest{Id: id(3), BaseRevision: rev})
+	_, err := svc.DeleteItem(user, &underdrawv1.DeleteItemRequest{Id: id(3), BaseRevision: rev})
 	wantCode(t, err, connect.CodeFailedPrecondition)
 }
 
 func TestConcurrentNextTask(t *testing.T) {
 	svc, _, _ := newService(t, oneTask()...)
 	const n = 10
-	got := make([]*kilnv1.NextTaskResponse, n)
+	got := make([]*underdrawv1.NextTaskResponse, n)
 	errs := make([]error, n)
 	var wg sync.WaitGroup
 	for i := range n {
 		wg.Go(func() {
-			got[i], errs[i] = svc.NextTask(agent(string(rune('a'+i))), &kilnv1.NextTaskRequest{})
+			got[i], errs[i] = svc.NextTask(agent(string(rune('a'+i))), &underdrawv1.NextTaskRequest{})
 		})
 	}
 	wg.Wait()
@@ -300,7 +300,7 @@ func TestConcurrentNextTask(t *testing.T) {
 func TestGetTaskContext(t *testing.T) {
 	svc, _, _ := newService(t, oneTask()...)
 	claim(t, svc, agent("a1"), 3)
-	resp, err := svc.GetTaskContext(user, &kilnv1.GetTaskContextRequest{Id: id(3)})
+	resp, err := svc.GetTaskContext(user, &underdrawv1.GetTaskContextRequest{Id: id(3)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -314,6 +314,6 @@ func TestGetTaskContext(t *testing.T) {
 		t.Fatal("claimed task marked resumed")
 	}
 
-	_, err = svc.GetTaskContext(user, &kilnv1.GetTaskContextRequest{Id: id(2)})
+	_, err = svc.GetTaskContext(user, &underdrawv1.GetTaskContextRequest{Id: id(2)})
 	wantCode(t, err, connect.CodeInvalidArgument)
 }

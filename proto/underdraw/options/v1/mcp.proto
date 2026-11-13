@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package underdraw.options.v1;
+
+import "google/protobuf/descriptor.proto";
+
+// McpTool exposes an RPC to agents as an MCP tool. RPCs without it are
+// available only to the GUI and CLI.
+//
+// protoc-gen-underdraw-mcp generates each tool's JSON Schema from the request
+// message. The RPC's leading comment becomes the tool description, and each
+// request field's comment becomes that parameter's description, so write
+// those comments for an agent to read.
+message McpTool {
+  // Tool name, in snake_case (e.g. "next_task").
+  string name = 1;
+}
+
+extend google.protobuf.MethodOptions {
+  McpTool mcp_tool = 50000;
+}

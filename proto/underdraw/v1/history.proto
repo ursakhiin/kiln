@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package underdraw.v1;
+
+import "google/protobuf/timestamp.proto";
+import "underdraw/v1/item.proto";
+
+// HistoryEntry is one append-only record in an item's history: a change or a
+// decision note. Each entry is stored as its own file,
+// .underdraw/history/<item-id>/<entry-id>.json, so branches that both add history
+// merge without conflicts. Entries are never edited or deleted, including
+// when their item is deleted.
+message HistoryEntry {
+  // ULID, generated on creation. Entries sort by ID in time order.
+  string id = 1;
+
+  // ID of the item the entry belongs to.
+  string item_id = 2;
+
+  google.protobuf.Timestamp create_time = 3;
+
+  // Who made the change or wrote the note.
+  Actor actor = 4;
+
+  oneof kind {
+    ChangeEvent change = 10;
+    DecisionNote note = 11;
+  }
+}
+
+// ChangeEvent records one change to an item. Its snapshot is the item's
+// version at that revision, so the change log and item versions are the
+// same records: diffs compare snapshots, and restoring a version writes an
+// old snapshot as a new revision.
+message ChangeEvent {
+  ChangeType type = 1;
+
+  // The item's revision after the change. Two branches that both changed an
+  // item can each have an event with the same revision; after a merge, the
+  // daemon records the merged result as a new revision.
+  int64 revision = 2;
+
+  // Paths of the fields that changed (e.g. "title", "task.status",
+  // "task.work_state.progress"). Empty for creation and deletion.
+  repeated string changed_fields = 3;
+
+  // The full item after the change. Unset for deletion.
+  Item snapshot = 4;
+
+  // For CHANGE_TYPE_RESTORED: the revision that was restored.
+  int64 restored_revision = 5;
+}
+
+// ChangeType is the kind of change. Claims aren't recorded: they live in
+// daemon memory, and claiming or releasing a task is recorded as its
+// status change.
+enum ChangeType {
+  CHANGE_TYPE_UNSPECIFIED = 0;
+  CHANGE_TYPE_CREATED = 1;
+  // Title, description or parent changed.
+  CHANGE_TYPE_UPDATED = 2;
+  CHANGE_TYPE_STATUS_CHANGED = 3;
+  // Rank changed.
+  CHANGE_TYPE_MOVED = 4;
+  CHANGE_TYPE_DEPENDENCY_ADDED = 5;
+  CHANGE_TYPE_DEPENDENCY_REMOVED = 6;
+  // An agent's claim ended (release or expiry) with work-state changes not
+  // yet recorded in another entry. Work state that changed before some other
+  // change is recorded in that change's entry instead, listed in its
+  // changed_fields. If the daemon stopped before recording it, it records
+  // it on startup.
+  CHANGE_TYPE_WORK_STATE_UPDATED = 7;
+  CHANGE_TYPE_RESTORED = 8;
+  CHANGE_TYPE_DELETED = 9;
+  // The item's file changed outside Underdraw (hand edit, git pull, branch
+  // switch) and the daemon picked it up.
+  CHANGE_TYPE_EXTERNAL_EDIT = 10;
+}
+
+// DecisionNote records why a decision was made. Notes are append-only: to
+// correct one, add another.
+message DecisionNote {
+  // Markdown.
+  string body = 1;
+
+  // The item's revision when the note was written.
+  int64 item_revision = 2;
+}
+
+// Actor is who made a change or wrote a note.
+message Actor {
+  ActorType type = 1;
+
+  // For agents: the MCP session (the same ID as Claim.agent_id).
+  string agent_id = 2;
+
+  // For agents: the session details, as known when the entry was recorded.
+  AgentSession session = 3;
+}
+
+// ActorType is the kind of actor.
+enum ActorType {
+  ACTOR_TYPE_UNSPECIFIED = 0;
+  // The user, through the GUI or CLI.
+  ACTOR_TYPE_USER = 1;
+  // An agent, through MCP.
+  ACTOR_TYPE_AGENT = 2;
+  // Unknown: a change made outside Underdraw, picked up by the daemon.
+  ACTOR_TYPE_EXTERNAL = 3;
+}

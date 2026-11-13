@@ -6,22 +6,22 @@ import (
 
 	"connectrpc.com/connect"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/service"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/service"
 )
 
 // renameTask changes the title of item n based on revision base.
 func renameTask(t *testing.T, svc *service.Service, n int, title string, base int64) {
 	t.Helper()
-	_, err := svc.UpdateItem(user, &kilnv1.UpdateItemRequest{
-		Item: &kilnv1.Item{Id: id(n), Title: title}, BaseRevision: base, UpdateMask: mask("title"),
+	_, err := svc.UpdateItem(user, &underdrawv1.UpdateItemRequest{
+		Item: &underdrawv1.Item{Id: id(n), Title: title}, BaseRevision: base, UpdateMask: mask("title"),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func entryIDs(es []*kilnv1.HistoryEntry) []string {
+func entryIDs(es []*underdrawv1.HistoryEntry) []string {
 	var ids []string
 	for _, e := range es {
 		ids = append(ids, e.Id)
@@ -30,11 +30,11 @@ func entryIDs(es []*kilnv1.HistoryEntry) []string {
 }
 
 func TestGetItemChanges(t *testing.T) {
-	svc, _, _ := newService(t, proj(1), feat(2, 1, "a"), task(3, 2, "a", kilnv1.Status_STATUS_READY))
+	svc, _, _ := newService(t, proj(1), feat(2, 1, "a"), task(3, 2, "a", underdrawv1.Status_STATUS_READY))
 	renameTask(t, svc, 3, "Second", 1)
 	renameTask(t, svc, 3, "Third", 2)
 
-	resp, err := svc.GetItemChanges(user, &kilnv1.GetItemChangesRequest{Id: id(3), SinceRevision: 1})
+	resp, err := svc.GetItemChanges(user, &underdrawv1.GetItemChangesRequest{Id: id(3), SinceRevision: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestGetItemChanges(t *testing.T) {
 		t.Errorf("last snapshot title %q, want Third", got)
 	}
 
-	resp, err = svc.GetItemChanges(user, &kilnv1.GetItemChangesRequest{Id: id(3), SinceRevision: 3})
+	resp, err = svc.GetItemChanges(user, &underdrawv1.GetItemChangesRequest{Id: id(3), SinceRevision: 3})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,11 +63,11 @@ func TestGetItemChanges(t *testing.T) {
 }
 
 func TestGetItemChangesDeleted(t *testing.T) {
-	svc, _, _ := newService(t, proj(1), feat(2, 1, "a"), task(3, 2, "a", kilnv1.Status_STATUS_READY))
-	if _, err := svc.DeleteItem(user, &kilnv1.DeleteItemRequest{Id: id(3), BaseRevision: 1}); err != nil {
+	svc, _, _ := newService(t, proj(1), feat(2, 1, "a"), task(3, 2, "a", underdrawv1.Status_STATUS_READY))
+	if _, err := svc.DeleteItem(user, &underdrawv1.DeleteItemRequest{Id: id(3), BaseRevision: 1}); err != nil {
 		t.Fatal(err)
 	}
-	resp, err := svc.GetItemChanges(user, &kilnv1.GetItemChangesRequest{Id: id(3)})
+	resp, err := svc.GetItemChanges(user, &underdrawv1.GetItemChangesRequest{Id: id(3)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,36 +75,36 @@ func TestGetItemChangesDeleted(t *testing.T) {
 		t.Fatal("no changes")
 	}
 	last := resp.Changes[len(resp.Changes)-1]
-	if got := last.GetChange().GetType(); got != kilnv1.ChangeType_CHANGE_TYPE_DELETED {
+	if got := last.GetChange().GetType(); got != underdrawv1.ChangeType_CHANGE_TYPE_DELETED {
 		t.Errorf("last change type %v, want DELETED", got)
 	}
 }
 
 func TestGetItemChangesUnknown(t *testing.T) {
 	svc, _, _ := newService(t, proj(1))
-	_, err := svc.GetItemChanges(user, &kilnv1.GetItemChangesRequest{Id: id(99)})
+	_, err := svc.GetItemChanges(user, &underdrawv1.GetItemChangesRequest{Id: id(99)})
 	wantCode(t, err, connect.CodeNotFound)
-	_, err = svc.GetItemChanges(user, &kilnv1.GetItemChangesRequest{Id: "bad"})
+	_, err = svc.GetItemChanges(user, &underdrawv1.GetItemChangesRequest{Id: "bad"})
 	wantCode(t, err, connect.CodeInvalidArgument)
 }
 
 func TestListHistoryChildren(t *testing.T) {
 	svc, _, _ := newService(t, proj(1))
-	f, err := svc.CreateItem(user, &kilnv1.CreateItemRequest{Item: newFeature("F", id(1))})
+	f, err := svc.CreateItem(user, &underdrawv1.CreateItemRequest{Item: newFeature("F", id(1))})
 	if err != nil {
 		t.Fatal(err)
 	}
 	fid := f.Item.Item.Id
 	want := []string{fid}
 	for _, title := range []string{"T1", "T2"} {
-		r, err := svc.CreateItem(user, &kilnv1.CreateItemRequest{Item: newTask(title, fid)})
+		r, err := svc.CreateItem(user, &underdrawv1.CreateItemRequest{Item: newTask(title, fid)})
 		if err != nil {
 			t.Fatal(err)
 		}
 		want = append(want, r.Item.Item.Id)
 	}
 
-	resp, err := svc.ListHistory(user, &kilnv1.ListHistoryRequest{Id: fid, IncludeChildren: true})
+	resp, err := svc.ListHistory(user, &underdrawv1.ListHistoryRequest{Id: fid, IncludeChildren: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func TestListHistoryChildren(t *testing.T) {
 	}
 	var got []string
 	for _, e := range resp.Entries {
-		if e.GetChange().GetType() != kilnv1.ChangeType_CHANGE_TYPE_CREATED {
+		if e.GetChange().GetType() != underdrawv1.ChangeType_CHANGE_TYPE_CREATED {
 			t.Errorf("entry %s: type %v, want CREATED", e.Id, e.GetChange().GetType())
 		}
 		got = append(got, e.ItemId)
@@ -125,7 +125,7 @@ func TestListHistoryChildren(t *testing.T) {
 		t.Errorf("item IDs %v, want %v (creation order)", got, want)
 	}
 
-	resp, err = svc.ListHistory(user, &kilnv1.ListHistoryRequest{Id: fid})
+	resp, err = svc.ListHistory(user, &underdrawv1.ListHistoryRequest{Id: fid})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,13 +133,13 @@ func TestListHistoryChildren(t *testing.T) {
 		t.Errorf("without children: got %v, want only the feature's entry", resp.Entries)
 	}
 
-	_, err = svc.ListHistory(user, &kilnv1.ListHistoryRequest{Id: id(99)})
+	_, err = svc.ListHistory(user, &underdrawv1.ListHistoryRequest{Id: id(99)})
 	wantCode(t, err, connect.CodeNotFound)
 }
 
 func TestDecisionNotes(t *testing.T) {
-	svc, _, repo := newService(t, proj(1), feat(2, 1, "a"), task(3, 2, "a", kilnv1.Status_STATUS_READY))
-	resp, err := svc.AddDecisionNote(agent("a1"), &kilnv1.AddDecisionNoteRequest{ItemId: id(3), Body: "chose X over Y"})
+	svc, _, repo := newService(t, proj(1), feat(2, 1, "a"), task(3, 2, "a", underdrawv1.Status_STATUS_READY))
+	resp, err := svc.AddDecisionNote(agent("a1"), &underdrawv1.AddDecisionNoteRequest{ItemId: id(3), Body: "chose X over Y"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,13 +147,13 @@ func TestDecisionNotes(t *testing.T) {
 	if e.GetNote().GetBody() != "chose X over Y" || e.GetNote().GetItemRevision() != 1 || e.ItemId != id(3) {
 		t.Errorf("unexpected entry %v", e)
 	}
-	if e.Actor.GetType() != kilnv1.ActorType_ACTOR_TYPE_AGENT || e.Actor.GetAgentId() != "a1" {
+	if e.Actor.GetType() != underdrawv1.ActorType_ACTOR_TYPE_AGENT || e.Actor.GetAgentId() != "a1" {
 		t.Errorf("actor %v, want agent a1", e.Actor)
 	}
 	if e.CreateTime == nil {
 		t.Error("no create_time")
 	}
-	if got, err := svc.GetItem(user, &kilnv1.GetItemRequest{Id: id(3)}); err != nil || got.Item.Item.Revision != 1 {
+	if got, err := svc.GetItem(user, &underdrawv1.GetItemRequest{Id: id(3)}); err != nil || got.Item.Item.Revision != 1 {
 		t.Errorf("item changed: %v %v", got, err)
 	}
 	if h := history(t, repo, id(3)); len(h) != 1 || h[0].Id != e.Id {
@@ -161,11 +161,11 @@ func TestDecisionNotes(t *testing.T) {
 	}
 
 	renameTask(t, svc, 3, "New", 1)
-	list, err := svc.ListHistory(user, &kilnv1.ListHistoryRequest{Id: id(3)})
+	list, err := svc.ListHistory(user, &underdrawv1.ListHistoryRequest{Id: id(3)})
 	if err != nil || len(list.Entries) != 2 {
 		t.Fatalf("got %v %v, want 2 entries", list, err)
 	}
-	list, err = svc.ListHistory(user, &kilnv1.ListHistoryRequest{Id: id(3), NotesOnly: true})
+	list, err = svc.ListHistory(user, &underdrawv1.ListHistoryRequest{Id: id(3), NotesOnly: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -174,9 +174,9 @@ func TestDecisionNotes(t *testing.T) {
 	}
 
 	for _, body := range []string{"", "  \n\t"} {
-		_, err = svc.AddDecisionNote(user, &kilnv1.AddDecisionNoteRequest{ItemId: id(3), Body: body})
+		_, err = svc.AddDecisionNote(user, &underdrawv1.AddDecisionNoteRequest{ItemId: id(3), Body: body})
 		wantCode(t, err, connect.CodeInvalidArgument)
 	}
-	_, err = svc.AddDecisionNote(user, &kilnv1.AddDecisionNoteRequest{ItemId: id(99), Body: "x"})
+	_, err = svc.AddDecisionNote(user, &underdrawv1.AddDecisionNoteRequest{ItemId: id(99), Body: "x"})
 	wantCode(t, err, connect.CodeNotFound)
 }

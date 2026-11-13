@@ -11,15 +11,15 @@ import (
 
 	"connectrpc.com/connect"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
-	"github.com/ursakhiin/kiln/internal/service"
-	"github.com/ursakhiin/kiln/internal/store"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
+	"github.com/ursakhiin/underdraw/internal/service"
+	"github.com/ursakhiin/underdraw/internal/store"
 )
 
-func getInfo(t *testing.T, svc *service.Service, n int) *kilnv1.ItemInfo {
+func getInfo(t *testing.T, svc *service.Service, n int) *underdrawv1.ItemInfo {
 	t.Helper()
-	resp, err := svc.GetItem(user, &kilnv1.GetItemRequest{Id: id(n)})
+	resp, err := svc.GetItem(user, &underdrawv1.GetItemRequest{Id: id(n)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,22 +28,22 @@ func getInfo(t *testing.T, svc *service.Service, n int) *kilnv1.ItemInfo {
 
 func TestCallerRequired(t *testing.T) {
 	svc, _, _ := newService(t, proj(1))
-	_, err := svc.GetItem(context.Background(), &kilnv1.GetItemRequest{Id: id(1)})
+	_, err := svc.GetItem(context.Background(), &underdrawv1.GetItemRequest{Id: id(1)})
 	wantCode(t, err, connect.CodePermissionDenied)
 }
 
 func TestGetItem(t *testing.T) {
-	svc, _, _ := newService(t, proj(1), feat(2, 1, "i"), task(3, 2, "i", kilnv1.Status_STATUS_READY))
+	svc, _, _ := newService(t, proj(1), feat(2, 1, "i"), task(3, 2, "i", underdrawv1.Status_STATUS_READY))
 
 	info := getInfo(t, svc, 3)
-	if info.Item.Revision != 1 || info.Status != kilnv1.Status_STATUS_READY {
+	if info.Item.Revision != 1 || info.Status != underdrawv1.Status_STATUS_READY {
 		t.Errorf("got revision %d status %v, want 1 READY", info.Item.Revision, info.Status)
 	}
 
-	_, err := svc.GetItem(user, &kilnv1.GetItemRequest{Id: id(42)})
+	_, err := svc.GetItem(user, &underdrawv1.GetItemRequest{Id: id(42)})
 	wantCode(t, err, connect.CodeNotFound)
 
-	_, err = svc.GetItem(user, &kilnv1.GetItemRequest{Id: "../x"})
+	_, err = svc.GetItem(user, &underdrawv1.GetItemRequest{Id: "../x"})
 	wantCode(t, err, connect.CodeInvalidArgument)
 }
 
@@ -56,7 +56,7 @@ func TestNewReportsBadFiles(t *testing.T) {
 	if err := st.PutItem(proj(1)); err != nil {
 		t.Fatal(err)
 	}
-	bad := filepath.Join(repo, ".kiln", "items", id(99)+".json")
+	bad := filepath.Join(repo, ".underdraw", "items", id(99)+".json")
 	if err := os.WriteFile(bad, []byte("{"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -89,16 +89,16 @@ func TestItemInfoDerived(t *testing.T) {
 	svc, _, _ := newService(t,
 		proj(p),
 		feat(f1, p, "c"),
-		task(t1, f1, "c", kilnv1.Status_STATUS_IN_PROGRESS),
-		task(t2, f1, "m", kilnv1.Status_STATUS_READY),
-		feat(f2, p, "m", dep(t2, kilnv1.BlockUntil_BLOCK_UNTIL_DONE)),
-		task(t3, f2, "c", kilnv1.Status_STATUS_READY),
+		task(t1, f1, "c", underdrawv1.Status_STATUS_IN_PROGRESS),
+		task(t2, f1, "m", underdrawv1.Status_STATUS_READY),
+		feat(f2, p, "m", dep(t2, underdrawv1.BlockUntil_BLOCK_UNTIL_DONE)),
+		task(t3, f2, "c", underdrawv1.Status_STATUS_READY),
 	)
 
-	if info := getInfo(t, svc, f1); info.Status != kilnv1.Status_STATUS_IN_PROGRESS || info.Blocked {
+	if info := getInfo(t, svc, f1); info.Status != underdrawv1.Status_STATUS_IN_PROGRESS || info.Blocked {
 		t.Errorf("F1: got %v blocked=%v, want IN_PROGRESS unblocked", info.Status, info.Blocked)
 	}
-	if info := getInfo(t, svc, f2); info.Status != kilnv1.Status_STATUS_READY || !info.Blocked {
+	if info := getInfo(t, svc, f2); info.Status != underdrawv1.Status_STATUS_READY || !info.Blocked {
 		t.Errorf("F2: got %v blocked=%v, want READY blocked", info.Status, info.Blocked)
 	}
 	if info := getInfo(t, svc, t3); !info.Blocked {
@@ -107,13 +107,13 @@ func TestItemInfoDerived(t *testing.T) {
 	if info := getInfo(t, svc, t1); info.Blocked {
 		t.Error("T1 should not be blocked")
 	}
-	if info := getInfo(t, svc, p); info.Status != kilnv1.Status_STATUS_UNSPECIFIED || info.Blocked || info.Claim != nil {
+	if info := getInfo(t, svc, p); info.Status != underdrawv1.Status_STATUS_UNSPECIFIED || info.Blocked || info.Claim != nil {
 		t.Errorf("project: got %v blocked=%v claim=%v, want UNSPECIFIED, unblocked, no claim", info.Status, info.Blocked, info.Claim)
 	}
 }
 
 func TestTaskWithMissingFeatureIsBlocked(t *testing.T) {
-	svc, _, _ := newService(t, proj(1), task(3, 2, "m", kilnv1.Status_STATUS_READY))
+	svc, _, _ := newService(t, proj(1), task(3, 2, "m", underdrawv1.Status_STATUS_READY))
 	if info := getInfo(t, svc, 3); !info.Blocked {
 		t.Error("a task whose feature is missing should be blocked")
 	}
@@ -133,11 +133,11 @@ func TestListItemsOrderAndFilters(t *testing.T) {
 	svc, _, _ := newService(t,
 		proj(p2), proj(p1),
 		feat(fA, p1, "m"), feat(fB, p2, "c"), feat(fC, p1, "x"),
-		task(tA2, fA, "t", kilnv1.Status_STATUS_READY),
-		task(tA1, fA, "g", kilnv1.Status_STATUS_READY),
-		task(tB1, fB, "k", kilnv1.Status_STATUS_IN_PROGRESS),
+		task(tA2, fA, "t", underdrawv1.Status_STATUS_READY),
+		task(tA1, fA, "g", underdrawv1.Status_STATUS_READY),
+		task(tB1, fB, "k", underdrawv1.Status_STATUS_IN_PROGRESS),
 	)
-	list := func(req *kilnv1.ListItemsRequest) []string {
+	list := func(req *underdrawv1.ListItemsRequest) []string {
 		t.Helper()
 		resp, err := svc.ListItems(user, req)
 		if err != nil {
@@ -156,32 +156,32 @@ func TestListItemsOrderAndFilters(t *testing.T) {
 		}
 	}
 
-	check("no filter", list(&kilnv1.ListItemsRequest{}), "P1", "P2", "B", "A", "C", "B1", "A1", "A2")
-	check("project P1", list(&kilnv1.ListItemsRequest{ProjectId: id(p1)}), "A", "C", "A1", "A2")
-	check("ready tasks", list(&kilnv1.ListItemsRequest{
-		Kind:     kilnv1.ItemKind_ITEM_KIND_TASK,
-		Statuses: []kilnv1.Status{kilnv1.Status_STATUS_READY},
+	check("no filter", list(&underdrawv1.ListItemsRequest{}), "P1", "P2", "B", "A", "C", "B1", "A1", "A2")
+	check("project P1", list(&underdrawv1.ListItemsRequest{ProjectId: id(p1)}), "A", "C", "A1", "A2")
+	check("ready tasks", list(&underdrawv1.ListItemsRequest{
+		Kind:     underdrawv1.ItemKind_ITEM_KIND_TASK,
+		Statuses: []underdrawv1.Status{underdrawv1.Status_STATUS_READY},
 	}), "A1", "A2")
-	check("feature A", list(&kilnv1.ListItemsRequest{FeatureId: id(fA)}), "A1", "A2")
-	check("in-progress features", list(&kilnv1.ListItemsRequest{
-		Kind:     kilnv1.ItemKind_ITEM_KIND_FEATURE,
-		Statuses: []kilnv1.Status{kilnv1.Status_STATUS_IN_PROGRESS},
+	check("feature A", list(&underdrawv1.ListItemsRequest{FeatureId: id(fA)}), "A1", "A2")
+	check("in-progress features", list(&underdrawv1.ListItemsRequest{
+		Kind:     underdrawv1.ItemKind_ITEM_KIND_FEATURE,
+		Statuses: []underdrawv1.Status{underdrawv1.Status_STATUS_IN_PROGRESS},
 	}), "B")
 
-	_, err := svc.ListItems(user, &kilnv1.ListItemsRequest{FeatureId: "bad"})
+	_, err := svc.ListItems(user, &underdrawv1.ListItemsRequest{FeatureId: "bad"})
 	wantCode(t, err, connect.CodeInvalidArgument)
-	_, err = svc.ListItems(user, &kilnv1.ListItemsRequest{ProjectId: "bad"})
+	_, err = svc.ListItems(user, &underdrawv1.ListItemsRequest{ProjectId: "bad"})
 	wantCode(t, err, connect.CodeInvalidArgument)
 }
 
 func TestListItemsOrphanTasksLast(t *testing.T) {
 	svc, _, _ := newService(t,
 		proj(1), feat(10, 1, "m"),
-		task(31, 99, "a", kilnv1.Status_STATUS_READY),
-		task(30, 98, "z", kilnv1.Status_STATUS_READY),
-		task(20, 10, "m", kilnv1.Status_STATUS_READY),
+		task(31, 99, "a", underdrawv1.Status_STATUS_READY),
+		task(30, 98, "z", underdrawv1.Status_STATUS_READY),
+		task(20, 10, "m", underdrawv1.Status_STATUS_READY),
 	)
-	resp, err := svc.ListItems(user, &kilnv1.ListItemsRequest{})
+	resp, err := svc.ListItems(user, &underdrawv1.ListItemsRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}

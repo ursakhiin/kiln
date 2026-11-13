@@ -1,12 +1,12 @@
 package core
 
-import kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
+import underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
 
 // Graph gives cycle detection read access to items. The service implements it
 // over the index; core stays free of I/O.
 type Graph interface {
 	// Item returns the item with this ID, or nil if there is none.
-	Item(id string) *kilnv1.Item
+	Item(id string) *underdrawv1.Item
 	// Tasks returns the IDs of a feature's tasks.
 	Tasks(featureID string) []string
 }
@@ -40,11 +40,11 @@ func waitsOn(n node, g Graph) []node {
 		}
 		return out
 	}
-	var deps []*kilnv1.Dependency
+	var deps []*underdrawv1.Dependency
 	switch k := item.GetKind().(type) {
-	case *kilnv1.Item_Feature:
+	case *underdrawv1.Item_Feature:
 		deps = k.Feature.GetDependsOn()
-	case *kilnv1.Item_Task:
+	case *underdrawv1.Item_Task:
 		deps = k.Task.GetDependsOn()
 		if f := k.Task.GetFeatureId(); f != "" {
 			out = append(out, node{f, false})
@@ -90,12 +90,12 @@ func WouldCreateCycle(itemID, dependsOnID string, g Graph) bool {
 // moves to another feature.
 func HasCycle(ids []string, g Graph) bool {
 	for _, id := range ids {
-		var deps []*kilnv1.Dependency
+		var deps []*underdrawv1.Dependency
 		item := g.Item(id)
 		switch k := item.GetKind().(type) {
-		case *kilnv1.Item_Feature:
+		case *underdrawv1.Item_Feature:
 			deps = k.Feature.GetDependsOn()
-		case *kilnv1.Item_Task:
+		case *underdrawv1.Item_Task:
 			deps = k.Task.GetDependsOn()
 		}
 		for _, d := range deps {

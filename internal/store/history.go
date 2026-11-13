@@ -5,13 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
 )
 
-// AppendHistory writes entry to .kiln/history/<item_id>/<id>.json. History is
+// AppendHistory writes entry to .underdraw/history/<item_id>/<id>.json. History is
 // append-only: it fails with an error matching fs.ErrExist if the entry
 // already exists.
-func (s *Store) AppendHistory(entry *kilnv1.HistoryEntry) error {
+func (s *Store) AppendHistory(entry *underdrawv1.HistoryEntry) error {
 	if err := checkID(entry.GetId()); err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (s *Store) AppendHistory(entry *kilnv1.HistoryEntry) error {
 // ListHistory returns an item's history entries, oldest first. Files that
 // can't be loaded are reported as FileErrors and skipped; the error is only
 // for failures such as an unreadable directory.
-func (s *Store) ListHistory(itemID string) ([]*kilnv1.HistoryEntry, []*FileError, error) {
+func (s *Store) ListHistory(itemID string) ([]*underdrawv1.HistoryEntry, []*FileError, error) {
 	if err := checkID(itemID); err != nil {
 		return nil, nil, err
 	}
@@ -41,7 +41,7 @@ func (s *Store) ListHistory(itemID string) ([]*kilnv1.HistoryEntry, []*FileError
 	if err != nil {
 		return nil, nil, err
 	}
-	entries := make([]*kilnv1.HistoryEntry, 0, len(ids))
+	entries := make([]*underdrawv1.HistoryEntry, 0, len(ids))
 	for _, id := range ids {
 		path := filepath.Join(dir, id+".json")
 		entry, err := readEntry(path, id, itemID)
@@ -56,12 +56,12 @@ func (s *Store) ListHistory(itemID string) ([]*kilnv1.HistoryEntry, []*FileError
 
 // readEntry reads and parses the history entry at path, checking that its id
 // matches the file name and its item_id matches the directory.
-func readEntry(path, id, itemID string) (*kilnv1.HistoryEntry, error) {
+func readEntry(path, id, itemID string) (*underdrawv1.HistoryEntry, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	entry := &kilnv1.HistoryEntry{}
+	entry := &underdrawv1.HistoryEntry{}
 	if err := unmarshal(data, entry); err != nil {
 		return nil, err
 	}

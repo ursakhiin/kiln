@@ -10,9 +10,9 @@ import (
 	"connectrpc.com/connect"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/service"
-	"github.com/ursakhiin/kiln/internal/store"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/service"
+	"github.com/ursakhiin/underdraw/internal/store"
 )
 
 // clock is a manual clock for Options.Now, starting at 2026-11-13T10:00:00Z.
@@ -44,40 +44,40 @@ func id(n int) string { return fmt.Sprintf("01JD%022d", n) }
 // clock starts.
 var seedTime = timestamppb.New(time.Date(2026, 11, 13, 9, 0, 0, 0, time.UTC))
 
-func proj(n int) *kilnv1.Item {
-	return &kilnv1.Item{
+func proj(n int) *underdrawv1.Item {
+	return &underdrawv1.Item{
 		Id: id(n), Revision: 1, Title: fmt.Sprintf("Project %d", n),
 		CreateTime: seedTime, UpdateTime: seedTime,
-		Kind: &kilnv1.Item_Project{Project: &kilnv1.Project{}},
+		Kind: &underdrawv1.Item_Project{Project: &underdrawv1.Project{}},
 	}
 }
 
-func feat(n, project int, rank string, deps ...*kilnv1.Dependency) *kilnv1.Item {
-	return &kilnv1.Item{
+func feat(n, project int, rank string, deps ...*underdrawv1.Dependency) *underdrawv1.Item {
+	return &underdrawv1.Item{
 		Id: id(n), Revision: 1, Title: fmt.Sprintf("Feature %d", n),
 		CreateTime: seedTime, UpdateTime: seedTime,
-		Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{
+		Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{
 			ProjectId: id(project), Draft: false, Rank: rank, DependsOn: deps,
 		}},
 	}
 }
 
-func task(n, feature int, rank string, st kilnv1.Status, deps ...*kilnv1.Dependency) *kilnv1.Item {
-	return &kilnv1.Item{
+func task(n, feature int, rank string, st underdrawv1.Status, deps ...*underdrawv1.Dependency) *underdrawv1.Item {
+	return &underdrawv1.Item{
 		Id: id(n), Revision: 1, Title: fmt.Sprintf("Task %d", n),
 		CreateTime: seedTime, UpdateTime: seedTime,
-		Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{
+		Kind: &underdrawv1.Item_Task{Task: &underdrawv1.Task{
 			FeatureId: id(feature), Status: st, Rank: rank, DependsOn: deps,
 		}},
 	}
 }
 
-func dep(n int, until kilnv1.BlockUntil) *kilnv1.Dependency {
-	return &kilnv1.Dependency{ItemId: id(n), BlockUntil: until}
+func dep(n int, until underdrawv1.BlockUntil) *underdrawv1.Dependency {
+	return &underdrawv1.Dependency{ItemId: id(n), BlockUntil: until}
 }
 
 // newService seeds a fresh repo with items and opens a service on it.
-func newService(t *testing.T, items ...*kilnv1.Item) (*service.Service, *clock, string) {
+func newService(t *testing.T, items ...*underdrawv1.Item) (*service.Service, *clock, string) {
 	t.Helper()
 	repo := t.TempDir()
 	st, err := store.Open(repo)
@@ -100,11 +100,11 @@ func newService(t *testing.T, items ...*kilnv1.Item) (*service.Service, *clock, 
 	return svc, clk, repo
 }
 
-var user = service.WithCaller(context.Background(), service.Caller{Actor: kilnv1.ActorType_ACTOR_TYPE_USER})
+var user = service.WithCaller(context.Background(), service.Caller{Actor: underdrawv1.ActorType_ACTOR_TYPE_USER})
 
 func agent(name string) context.Context {
 	return service.WithCaller(context.Background(), service.Caller{
-		Actor: kilnv1.ActorType_ACTOR_TYPE_AGENT, AgentID: name, Host: "test-host", HostVersion: "1.0",
+		Actor: underdrawv1.ActorType_ACTOR_TYPE_AGENT, AgentID: name, Host: "test-host", HostVersion: "1.0",
 	})
 }
 

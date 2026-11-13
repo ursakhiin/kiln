@@ -6,12 +6,12 @@ import (
 	"slices"
 	"strings"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
 )
 
 // GetItem returns one item.
-func (s *Service) GetItem(ctx context.Context, req *kilnv1.GetItemRequest) (*kilnv1.GetItemResponse, error) {
+func (s *Service) GetItem(ctx context.Context, req *underdrawv1.GetItemRequest) (*underdrawv1.GetItemResponse, error) {
 	_, unlock, err := s.begin(ctx)
 	if err != nil {
 		return nil, err
@@ -21,14 +21,14 @@ func (s *Service) GetItem(ctx context.Context, req *kilnv1.GetItemRequest) (*kil
 	if err != nil {
 		return nil, err
 	}
-	return &kilnv1.GetItemResponse{Item: s.info(item)}, nil
+	return &underdrawv1.GetItemResponse{Item: s.info(item)}, nil
 }
 
 // ListItems returns the items matching every filter in req: projects by ID,
 // then features in feature-rank order, then tasks grouped by feature (in
 // feature-rank order) and by task rank, then tasks whose feature is missing,
 // by ID.
-func (s *Service) ListItems(ctx context.Context, req *kilnv1.ListItemsRequest) (*kilnv1.ListItemsResponse, error) {
+func (s *Service) ListItems(ctx context.Context, req *underdrawv1.ListItemsRequest) (*underdrawv1.ListItemsResponse, error) {
 	_, unlock, err := s.begin(ctx)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (s *Service) ListItems(ctx context.Context, req *kilnv1.ListItemsRequest) (
 		}
 	}
 
-	resp := &kilnv1.ListItemsResponse{}
+	resp := &underdrawv1.ListItemsResponse{}
 	for _, item := range s.listOrder() {
 		if s.matches(item, req) {
 			resp.Items = append(resp.Items, s.info(item))
@@ -53,8 +53,8 @@ func (s *Service) ListItems(ctx context.Context, req *kilnv1.ListItemsRequest) (
 }
 
 // listOrder returns every item in ListItems order.
-func (s *Service) listOrder() []*kilnv1.Item {
-	var projects, orphans []*kilnv1.Item
+func (s *Service) listOrder() []*underdrawv1.Item {
+	var projects, orphans []*underdrawv1.Item
 	for _, it := range s.items {
 		switch {
 		case it.GetProject() != nil:
@@ -63,7 +63,7 @@ func (s *Service) listOrder() []*kilnv1.Item {
 			orphans = append(orphans, it)
 		}
 	}
-	byID := func(a, b *kilnv1.Item) int { return strings.Compare(a.GetId(), b.GetId()) }
+	byID := func(a, b *underdrawv1.Item) int { return strings.Compare(a.GetId(), b.GetId()) }
 	slices.SortFunc(projects, byID)
 	slices.SortFunc(orphans, byID)
 
@@ -76,8 +76,8 @@ func (s *Service) listOrder() []*kilnv1.Item {
 }
 
 // matches reports whether item passes every filter in req.
-func (s *Service) matches(item *kilnv1.Item, req *kilnv1.ListItemsRequest) bool {
-	if k := req.GetKind(); k != kilnv1.ItemKind_ITEM_KIND_UNSPECIFIED && k != kindOf(item) {
+func (s *Service) matches(item *underdrawv1.Item, req *underdrawv1.ListItemsRequest) bool {
+	if k := req.GetKind(); k != underdrawv1.ItemKind_ITEM_KIND_UNSPECIFIED && k != kindOf(item) {
 		return false
 	}
 	if p := req.GetProjectId(); p != "" {
@@ -99,15 +99,15 @@ func (s *Service) matches(item *kilnv1.Item, req *kilnv1.ListItemsRequest) bool 
 }
 
 // kindOf returns item's ItemKind.
-func kindOf(item *kilnv1.Item) kilnv1.ItemKind {
+func kindOf(item *underdrawv1.Item) underdrawv1.ItemKind {
 	switch item.GetKind().(type) {
-	case *kilnv1.Item_Project:
-		return kilnv1.ItemKind_ITEM_KIND_PROJECT
-	case *kilnv1.Item_Feature:
-		return kilnv1.ItemKind_ITEM_KIND_FEATURE
-	case *kilnv1.Item_Task:
-		return kilnv1.ItemKind_ITEM_KIND_TASK
+	case *underdrawv1.Item_Project:
+		return underdrawv1.ItemKind_ITEM_KIND_PROJECT
+	case *underdrawv1.Item_Feature:
+		return underdrawv1.ItemKind_ITEM_KIND_FEATURE
+	case *underdrawv1.Item_Task:
+		return underdrawv1.ItemKind_ITEM_KIND_TASK
 	default:
-		return kilnv1.ItemKind_ITEM_KIND_UNSPECIFIED
+		return underdrawv1.ItemKind_ITEM_KIND_UNSPECIFIED
 	}
 }

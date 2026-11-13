@@ -9,9 +9,9 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
-	"github.com/ursakhiin/kiln/internal/store"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
+	"github.com/ursakhiin/underdraw/internal/store"
 )
 
 func openStore(t *testing.T) (*store.Store, string) {
@@ -24,10 +24,10 @@ func openStore(t *testing.T) (*store.Store, string) {
 	return s, root
 }
 
-func testItem(id string) *kilnv1.Item {
-	return &kilnv1.Item{
+func testItem(id string) *underdrawv1.Item {
+	return &underdrawv1.Item{
 		Id: id, Revision: 1, Title: "Sync engine",
-		Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{FeatureId: core.NewID(), Status: kilnv1.Status_STATUS_READY, Rank: "i"}},
+		Kind: &underdrawv1.Item_Task{Task: &underdrawv1.Task{FeatureId: core.NewID(), Status: underdrawv1.Status_STATUS_READY, Rank: "i"}},
 	}
 }
 
@@ -41,7 +41,7 @@ func TestItemRoundTrip(t *testing.T) {
 	if err != nil || !proto.Equal(got, item) {
 		t.Fatalf("GetItem = %v, %v; want %v", got, err, item)
 	}
-	if _, err := os.Stat(filepath.Join(root, ".kiln", "items", item.Id+".json")); err != nil {
+	if _, err := os.Stat(filepath.Join(root, ".underdraw", "items", item.Id+".json")); err != nil {
 		t.Fatalf("item file: %v", err)
 	}
 	if err := s.DeleteItem(item.Id); err != nil {
@@ -60,7 +60,7 @@ func TestInvalidIDs(t *testing.T) {
 	if err := s.DeleteItem("x"); !errors.Is(err, core.ErrInvalidArgument) {
 		t.Errorf("DeleteItem: got %v, want ErrInvalidArgument", err)
 	}
-	if err := s.PutItem(&kilnv1.Item{Id: "../x"}); !errors.Is(err, core.ErrInvalidArgument) {
+	if err := s.PutItem(&underdrawv1.Item{Id: "../x"}); !errors.Is(err, core.ErrInvalidArgument) {
 		t.Errorf("PutItem: got %v, want ErrInvalidArgument", err)
 	}
 	// Only the store's own directories exist; nothing was written elsewhere.
@@ -70,7 +70,7 @@ func TestInvalidIDs(t *testing.T) {
 		paths = append(paths, rel)
 		return nil
 	})
-	want := []string{".", ".kiln", ".kiln/history", ".kiln/items"}
+	want := []string{".", ".underdraw", ".underdraw/history", ".underdraw/items"}
 	sort.Strings(paths)
 	if len(paths) != len(want) {
 		t.Fatalf("files under root: %v, want %v", paths, want)
@@ -85,12 +85,12 @@ func TestInvalidIDs(t *testing.T) {
 func TestListItemsReportsBadFiles(t *testing.T) {
 	s, root := openStore(t)
 	a, b := testItem(core.NewID()), testItem(core.NewID())
-	for _, it := range []*kilnv1.Item{b, a} {
+	for _, it := range []*underdrawv1.Item{b, a} {
 		if err := s.PutItem(it); err != nil {
 			t.Fatal(err)
 		}
 	}
-	dir := filepath.Join(root, ".kiln", "items")
+	dir := filepath.Join(root, ".underdraw", "items")
 	mismatched := testItem(core.NewID()) // its id doesn't match the filename below
 	mismatchedJSON := `{"id": "` + mismatched.Id + `", "title": "x"}`
 	for name, content := range map[string]string{

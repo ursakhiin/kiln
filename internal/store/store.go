@@ -9,10 +9,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ursakhiin/kiln/internal/core"
+	"github.com/ursakhiin/underdraw/internal/core"
 )
 
-// Store reads and writes Kiln's data files under <repo>/.kiln/:
+// Store reads and writes Underdraw's data files under <repo>/.underdraw/:
 //
 //	items/<id>.json                    one file per item
 //	history/<item-id>/<entry-id>.json  one file per history entry
@@ -24,13 +24,13 @@ type Store struct {
 	historyDir string
 }
 
-// Open opens the store for the repo at repoRoot, creating .kiln/items/ and
-// .kiln/history/ if they're missing.
+// Open opens the store for the repo at repoRoot, creating .underdraw/items/ and
+// .underdraw/history/ if they're missing.
 func Open(repoRoot string) (*Store, error) {
-	kiln := filepath.Join(repoRoot, ".kiln")
+	underdraw := filepath.Join(repoRoot, ".underdraw")
 	s := &Store{
-		itemsDir:   filepath.Join(kiln, "items"),
-		historyDir: filepath.Join(kiln, "history"),
+		itemsDir:   filepath.Join(underdraw, "items"),
+		historyDir: filepath.Join(underdraw, "history"),
 	}
 	for _, dir := range []string{s.itemsDir, s.historyDir} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {

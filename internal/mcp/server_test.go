@@ -9,9 +9,9 @@ import (
 
 	sdk "github.com/modelcontextprotocol/go-sdk/mcp"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/service"
-	"github.com/ursakhiin/kiln/internal/store"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/service"
+	"github.com/ursakhiin/underdraw/internal/store"
 )
 
 type env struct {
@@ -158,7 +158,7 @@ func TestCreateItemAsAgent(t *testing.T) {
 		t.Fatalf("got %d history entries, want 1", len(hist))
 	}
 	actor := hist[0].GetActor()
-	if actor.GetType() != kilnv1.ActorType_ACTOR_TYPE_AGENT {
+	if actor.GetType() != underdrawv1.ActorType_ACTOR_TYPE_AGENT {
 		t.Errorf("actor type %v, want agent", actor.GetType())
 	}
 	if actor.GetAgentId() != cs.ID() || cs.ID() == "" {
@@ -209,20 +209,20 @@ func TestUnknownArgument(t *testing.T) {
 
 func TestNextTaskTwoAgents(t *testing.T) {
 	e := start(t)
-	user := service.WithCaller(context.Background(), service.Caller{Actor: kilnv1.ActorType_ACTOR_TYPE_USER})
-	create := func(item *kilnv1.Item) string {
+	user := service.WithCaller(context.Background(), service.Caller{Actor: underdrawv1.ActorType_ACTOR_TYPE_USER})
+	create := func(item *underdrawv1.Item) string {
 		t.Helper()
-		resp, err := e.svc.CreateItem(user, &kilnv1.CreateItemRequest{Item: item})
+		resp, err := e.svc.CreateItem(user, &underdrawv1.CreateItemRequest{Item: item})
 		if err != nil {
 			t.Fatal(err)
 		}
 		return resp.GetItem().GetItem().GetId()
 	}
-	project := create(&kilnv1.Item{Title: "P", Kind: &kilnv1.Item_Project{Project: &kilnv1.Project{}}})
-	feature := create(&kilnv1.Item{Title: "F", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{ProjectId: project}}})
+	project := create(&underdrawv1.Item{Title: "P", Kind: &underdrawv1.Item_Project{Project: &underdrawv1.Project{}}})
+	feature := create(&underdrawv1.Item{Title: "F", Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{ProjectId: project}}})
 	tasks := map[string]bool{}
 	for _, title := range []string{"T1", "T2"} {
-		tasks[create(&kilnv1.Item{Title: title, Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{FeatureId: feature}}})] = true
+		tasks[create(&underdrawv1.Item{Title: title, Kind: &underdrawv1.Item_Task{Task: &underdrawv1.Task{FeatureId: feature}}})] = true
 	}
 
 	claimed := map[string]bool{}

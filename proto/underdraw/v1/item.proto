@@ -1,0 +1,196 @@
+syntax = "proto3";
+
+package underdraw.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Item is a project, feature or task. Each Item is stored as one file,
+// .underdraw/items/<id>.json, which is the source of truth.
+message Item {
+  // ULID, generated on creation. Never reused or renumbered, so items created
+  // on different branches never collide.
+  string id = 1;
+
+  // Incremented on every change, including outside edits picked up by the
+  // daemon, except work-state updates (see Task.work_state). Writes must state
+  // the revision they are based on; a write based on an older revision is
+  // rejected.
+  int64 revision = 2;
+
+  string title = 3;
+
+  // Markdown.
+  string description = 4;
+
+  google.protobuf.Timestamp create_time = 5;
+  google.protobuf.Timestamp update_time = 6;
+
+  oneof kind {
+    Project project = 10;
+    Feature feature = 11;
+    Task task = 12;
+  }
+}
+
+// Project groups features. A repo can contain several projects.
+message Project {}
+
+// Feature is a unit of user-facing work, broken down into tasks.
+message Feature {
+  // ID of the parent Project.
+  string project_id = 1;
+
+  // True while the feature is still an idea. Agents never implement draft
+  // features or their tasks.
+  bool draft = 2;
+
+  // Set by the user to override the derived status. STATUS_UNSPECIFIED means
+  // no override.
+  //
+  // The effective status is not stored: it is computed as
+  //   status_override, if set; else
+  //   STATUS_DRAFT, if draft; else
+  //   derived from the feature's tasks (STATUS_READY if it has none).
+  // Storing a derived status would cause merge conflicts whenever two
+  // branches change different tasks of the same feature.
+  Status status_override = 3;
+
+  // Sortable rank string (LexoRank style), across all features in the repo.
+  // Lower sorts first. This is the primary priority: next_task orders tasks by
+  // their feature's rank first. Reordering rewrites only the moved item's file.
+  string rank = 4;
+
+  // Features or tasks, in any project, that block this feature. Cycles are
+  // rejected.
+  repeated Dependency depends_on = 5;
+}
+
+// Task is the unit of work an agent implements.
+message Task {
+  // ID of the parent Feature.
+  string feature_id = 1;
+
+  Status status = 2;
+
+  // Sortable rank string (LexoRank style), ordering tasks within their
+  // feature only.
+  //
+  // next_task considers tasks that are ready, unblocked and unclaimed, ordered
+  // by feature rank, then task rank, with feature affinity: an agent prefers
+  // the next task in the feature it is working on, and other agents prefer
+  // features no agent is working on. Affinity and claims are daemon runtime
+  // state, not stored here.
+  string rank = 3;
+
+  // Features or tasks, in any project, that block this task. Cycles are
+  // rejected.
+  repeated Dependency depends_on = 4;
+
+  // What the agents working on this task have recorded so another agent can
+  // continue it. Kept after the task moves on, so the user can find the
+  // branch and PR when reviewing.
+  //
+  // Updating it rewrites this file but doesn't increment the revision or add
+  // a history entry. The pending work state is recorded in the task's next
+  // history entry, or in its own entry when the agent's claim ends without
+  // one (release or expiry): one entry per agent session, not per update.
+  WorkState work_state = 5;
+}
+
+// WorkState is what an agent records so another agent can continue a task
+// where it left off. It is committed to git with the task, so it must never
+// contain credential values; Underdraw rejects values that look like secrets.
+message WorkState {
+  // Git branch holding the work.
+  string branch = 1;
+
+  // Path to the git worktree holding the work, if not the main checkout.
+  // Specific to this machine.
+  string worktree_path = 2;
+
+  // Commit the work started from.
+  string base_commit = 3;
+
+  // Latest commit made for this task.
+  string head_commit = 4;
+
+  // Pull request for the work, if one exists.
+  string pull_request_url = 5;
+
+  // The most recent agent session that worked on the task. Earlier sessions
+  // are kept in the item's version history.
+  AgentSession session = 6;
+
+  // Markdown notes: what's done, what's left, how to verify it, and anything
+  // blocking.
+  string progress = 7;
+
+  // Repo-relative paths of files the agent created or relies on, such as
+  // plans, specs or notes.
+  repeated string files = 8;
+
+  // Names of credentials the work needs (e.g. an env var like GITHUB_TOKEN),
+  // never their values.
+  repeated string credential_refs = 9;
+
+  // Anything else a follow-up agent would need, as key-value pairs.
+  map<string, string> extra = 10;
+
+  google.protobuf.Timestamp update_time = 11;
+}
+
+// AgentSession identifies an agent session so its work can be traced or
+// resumed.
+message AgentSession {
+  // The agent host (e.g. "claude-code") and its version. Underdraw fills these in
+  // from the MCP connection.
+  string host = 1;
+  string host_version = 2;
+
+  // The host's own session ID, if it can resume sessions (e.g. with
+  // `claude --resume <id>`). Specific to this machine.
+  string session_id = 3;
+
+  // Path to the session's transcript, if the host keeps one. A follow-up
+  // agent can read it to see what was tried. Specific to this machine.
+  string transcript_path = 4;
+
+  // Model the session ran on.
+  string model = 5;
+}
+
+// Dependency is a link to an item that blocks the item holding it. It is
+// stored on the blocked item, so adding one changes only that item's file.
+message Dependency {
+  // ID of the blocking feature or task.
+  string item_id = 1;
+
+  // When the blocking item stops blocking. BLOCK_UNTIL_UNSPECIFIED behaves as
+  // BLOCK_UNTIL_DONE.
+  BlockUntil block_until = 2;
+}
+
+// BlockUntil is the status a blocking item must reach before the items that
+// depend on it can start.
+enum BlockUntil {
+  // Treated as BLOCK_UNTIL_DONE.
+  BLOCK_UNTIL_UNSPECIFIED = 0;
+  // Blocks until the user approves the work (STATUS_DONE).
+  BLOCK_UNTIL_DONE = 1;
+  // Blocks only until the work reaches STATUS_IN_REVIEW, so agents can keep
+  // moving before the user reviews it. Dependents may need rework if the
+  // review rejects it.
+  BLOCK_UNTIL_IN_REVIEW = 2;
+}
+
+// Status is the lifecycle of features and tasks:
+// draft -> ready -> in progress -> in review -> done.
+// Agents may move work up to STATUS_IN_REVIEW; only the user sets STATUS_DONE.
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_DRAFT = 1;
+  STATUS_READY = 2;
+  STATUS_IN_PROGRESS = 3;
+  STATUS_IN_REVIEW = 4;
+  STATUS_DONE = 5;
+}

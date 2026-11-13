@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
 )
 
 // claim is an agent's hold on a task. Claims live only in memory: when the
@@ -55,16 +55,16 @@ func (s *Service) endClaim(taskID string) {
 }
 
 // claimOf returns the claim on item, if any.
-func (s *Service) claimOf(item *kilnv1.Item) *kilnv1.Claim {
+func (s *Service) claimOf(item *underdrawv1.Item) *underdrawv1.Claim {
 	c, ok := s.claims[item.GetId()]
 	if !ok {
 		return nil
 	}
-	return &kilnv1.Claim{AgentId: c.agentID, ExpireTime: timestamppb.New(c.expire)}
+	return &underdrawv1.Claim{AgentId: c.agentID, ExpireTime: timestamppb.New(c.expire)}
 }
 
 // holds reports whether caller is the agent holding the claim on taskID.
 func (s *Service) holds(caller Caller, taskID string) bool {
 	c, ok := s.claims[taskID]
-	return ok && caller.Actor == kilnv1.ActorType_ACTOR_TYPE_AGENT && c.agentID == caller.AgentID
+	return ok && caller.Actor == underdrawv1.ActorType_ACTOR_TYPE_AGENT && c.agentID == caller.AgentID
 }

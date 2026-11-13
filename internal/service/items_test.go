@@ -17,10 +17,10 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
-	"github.com/ursakhiin/kiln/internal/service"
-	"github.com/ursakhiin/kiln/internal/store"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
+	"github.com/ursakhiin/underdraw/internal/service"
+	"github.com/ursakhiin/underdraw/internal/store"
 )
 
 func openStore(t *testing.T, repo string) *store.Store {
@@ -32,7 +32,7 @@ func openStore(t *testing.T, repo string) *store.Store {
 	return st
 }
 
-func history(t *testing.T, repo, itemID string) []*kilnv1.HistoryEntry {
+func history(t *testing.T, repo, itemID string) []*underdrawv1.HistoryEntry {
 	t.Helper()
 	h, fileErrs, err := openStore(t, repo).ListHistory(itemID)
 	if err != nil || len(fileErrs) > 0 {
@@ -41,41 +41,41 @@ func history(t *testing.T, repo, itemID string) []*kilnv1.HistoryEntry {
 	return h
 }
 
-func newProject(title string) *kilnv1.Item {
-	return &kilnv1.Item{Title: title, Kind: &kilnv1.Item_Project{Project: &kilnv1.Project{}}}
+func newProject(title string) *underdrawv1.Item {
+	return &underdrawv1.Item{Title: title, Kind: &underdrawv1.Item_Project{Project: &underdrawv1.Project{}}}
 }
 
-func newFeature(title, project string) *kilnv1.Item {
-	return &kilnv1.Item{Title: title, Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{ProjectId: project}}}
+func newFeature(title, project string) *underdrawv1.Item {
+	return &underdrawv1.Item{Title: title, Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{ProjectId: project}}}
 }
 
-func newTask(title, feature string) *kilnv1.Item {
-	return &kilnv1.Item{Title: title, Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{FeatureId: feature}}}
+func newTask(title, feature string) *underdrawv1.Item {
+	return &underdrawv1.Item{Title: title, Kind: &underdrawv1.Item_Task{Task: &underdrawv1.Task{FeatureId: feature}}}
 }
 
 func mask(paths ...string) *fieldmaskpb.FieldMask { return &fieldmaskpb.FieldMask{Paths: paths} }
 
 // reparent builds an UpdateItem request moving task n to feature f.
-func reparent(n, f int, base int64) *kilnv1.UpdateItemRequest {
-	return &kilnv1.UpdateItemRequest{
-		Item:         &kilnv1.Item{Id: id(n), Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{FeatureId: id(f)}}},
+func reparent(n, f int, base int64) *underdrawv1.UpdateItemRequest {
+	return &underdrawv1.UpdateItemRequest{
+		Item:         &underdrawv1.Item{Id: id(n), Kind: &underdrawv1.Item_Task{Task: &underdrawv1.Task{FeatureId: id(f)}}},
 		BaseRevision: base, UpdateMask: mask("task.feature_id"),
 	}
 }
 
-func before(n int) *kilnv1.MoveItemRequest_BeforeId {
-	return &kilnv1.MoveItemRequest_BeforeId{BeforeId: id(n)}
+func before(n int) *underdrawv1.MoveItemRequest_BeforeId {
+	return &underdrawv1.MoveItemRequest_BeforeId{BeforeId: id(n)}
 }
 
-func after(n int) *kilnv1.MoveItemRequest_AfterId {
-	return &kilnv1.MoveItemRequest_AfterId{AfterId: id(n)}
+func after(n int) *underdrawv1.MoveItemRequest_AfterId {
+	return &underdrawv1.MoveItemRequest_AfterId{AfterId: id(n)}
 }
 
 func TestCreateItem(t *testing.T) {
 	svc, clk, repo := newService(t)
-	create := func(item *kilnv1.Item) *kilnv1.ItemInfo {
+	create := func(item *underdrawv1.Item) *underdrawv1.ItemInfo {
 		t.Helper()
-		resp, err := svc.CreateItem(user, &kilnv1.CreateItemRequest{Item: item})
+		resp, err := svc.CreateItem(user, &underdrawv1.CreateItemRequest{Item: item})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -97,7 +97,7 @@ func TestCreateItem(t *testing.T) {
 	if f1.Item.GetFeature().Rank >= f2.Item.GetFeature().Rank {
 		t.Errorf("ranks: F1 %q, F2 %q", f1.Item.GetFeature().Rank, f2.Item.GetFeature().Rank)
 	}
-	if t1.Status != kilnv1.Status_STATUS_READY {
+	if t1.Status != underdrawv1.Status_STATUS_READY {
 		t.Errorf("T1 status %v", t1.Status)
 	}
 
@@ -118,13 +118,13 @@ func TestCreateItem(t *testing.T) {
 		t.Fatalf("got %d history entries, want 1", len(h))
 	}
 	ch := h[0].GetChange()
-	if ch.Type != kilnv1.ChangeType_CHANGE_TYPE_CREATED || ch.Revision != 1 || len(ch.ChangedFields) != 0 {
+	if ch.Type != underdrawv1.ChangeType_CHANGE_TYPE_CREATED || ch.Revision != 1 || len(ch.ChangedFields) != 0 {
 		t.Errorf("history change %v", ch)
 	}
 	if !proto.Equal(ch.Snapshot, file) {
 		t.Errorf("snapshot %v differs from file %v", ch.Snapshot, file)
 	}
-	if h[0].Actor.Type != kilnv1.ActorType_ACTOR_TYPE_USER || h[0].Actor.AgentId != "" || h[0].Actor.Session != nil {
+	if h[0].Actor.Type != underdrawv1.ActorType_ACTOR_TYPE_USER || h[0].Actor.AgentId != "" || h[0].Actor.Session != nil {
 		t.Errorf("actor %v", h[0].Actor)
 	}
 	if !proto.Equal(h[0].CreateTime, want) {
@@ -135,17 +135,17 @@ func TestCreateItem(t *testing.T) {
 func TestCreateItemParents(t *testing.T) {
 	svc, _, _ := newService(t, proj(1))
 	for name, tc := range map[string]struct {
-		item *kilnv1.Item
+		item *underdrawv1.Item
 		code connect.Code
 	}{
 		"unknown project":       {newFeature("F", id(99)), connect.CodeNotFound},
 		"task under project":    {newTask("T", id(1)), connect.CodeInvalidArgument},
 		"task with bad ID":      {newTask("T", "x"), connect.CodeInvalidArgument},
 		"feature with bad ID":   {newFeature("F", "x"), connect.CodeInvalidArgument},
-		"no kind":               {&kilnv1.Item{Title: "x"}, connect.CodeInvalidArgument},
+		"no kind":               {&underdrawv1.Item{Title: "x"}, connect.CodeInvalidArgument},
 		"feature under feature": {newFeature("F", id(1)), 0},
 	} {
-		_, err := svc.CreateItem(user, &kilnv1.CreateItemRequest{Item: tc.item})
+		_, err := svc.CreateItem(user, &underdrawv1.CreateItemRequest{Item: tc.item})
 		if tc.code == 0 {
 			if err != nil {
 				t.Errorf("%s: %v", name, err)
@@ -160,20 +160,20 @@ func TestCreateItemParents(t *testing.T) {
 
 func TestAgentCreatesDraftFeature(t *testing.T) {
 	svc, _, repo := newService(t, proj(1))
-	resp, err := svc.CreateItem(agent("a1"), &kilnv1.CreateItemRequest{Item: newFeature("F", id(1))})
+	resp, err := svc.CreateItem(agent("a1"), &underdrawv1.CreateItemRequest{Item: newFeature("F", id(1))})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !resp.Item.Item.GetFeature().Draft || resp.Item.Status != kilnv1.Status_STATUS_DRAFT {
+	if !resp.Item.Item.GetFeature().Draft || resp.Item.Status != underdrawv1.Status_STATUS_DRAFT {
 		t.Errorf("draft %v status %v", resp.Item.Item.GetFeature().Draft, resp.Item.Status)
 	}
 	h := history(t, repo, resp.Item.Item.Id)
 	if len(h) != 1 {
 		t.Fatalf("got %d history entries", len(h))
 	}
-	wantActor := &kilnv1.Actor{
-		Type: kilnv1.ActorType_ACTOR_TYPE_AGENT, AgentId: "a1",
-		Session: &kilnv1.AgentSession{Host: "test-host", HostVersion: "1.0"},
+	wantActor := &underdrawv1.Actor{
+		Type: underdrawv1.ActorType_ACTOR_TYPE_AGENT, AgentId: "a1",
+		Session: &underdrawv1.AgentSession{Host: "test-host", HostVersion: "1.0"},
 	}
 	if !proto.Equal(h[0].Actor, wantActor) {
 		t.Errorf("actor %v, want %v", h[0].Actor, wantActor)
@@ -187,8 +187,8 @@ func TestAgentCreatesDraftFeature(t *testing.T) {
 func TestUpdateItem(t *testing.T) {
 	svc, clk, repo := newService(t, proj(1), feat(2, 1, "m"))
 	clk.Advance(time.Hour)
-	resp, err := svc.UpdateItem(agent("a1"), &kilnv1.UpdateItemRequest{
-		Item:         &kilnv1.Item{Id: id(2), Title: "Renamed"},
+	resp, err := svc.UpdateItem(agent("a1"), &underdrawv1.UpdateItemRequest{
+		Item:         &underdrawv1.Item{Id: id(2), Title: "Renamed"},
 		BaseRevision: 1, UpdateMask: mask("title"),
 	})
 	if err != nil {
@@ -210,19 +210,19 @@ func TestUpdateItem(t *testing.T) {
 		t.Fatalf("got %d history entries, want 1", len(h))
 	}
 	ch := h[0].GetChange()
-	if ch.Type != kilnv1.ChangeType_CHANGE_TYPE_UPDATED || ch.Revision != 2 ||
+	if ch.Type != underdrawv1.ChangeType_CHANGE_TYPE_UPDATED || ch.Revision != 2 ||
 		!slices.Equal(ch.ChangedFields, []string{"title"}) || !proto.Equal(ch.Snapshot, file) {
 		t.Errorf("change %v", ch)
 	}
-	if h[0].Actor.Type != kilnv1.ActorType_ACTOR_TYPE_AGENT || h[0].Actor.AgentId != "a1" || h[0].Actor.Session.Host != "test-host" {
+	if h[0].Actor.Type != underdrawv1.ActorType_ACTOR_TYPE_AGENT || h[0].Actor.AgentId != "a1" || h[0].Actor.Session.Host != "test-host" {
 		t.Errorf("actor %v", h[0].Actor)
 	}
 }
 
 func TestUpdateItemStale(t *testing.T) {
 	svc, _, repo := newService(t, proj(1))
-	_, err := svc.UpdateItem(user, &kilnv1.UpdateItemRequest{
-		Item: &kilnv1.Item{Id: id(1), Title: "x"}, BaseRevision: 0, UpdateMask: mask("title"),
+	_, err := svc.UpdateItem(user, &underdrawv1.UpdateItemRequest{
+		Item: &underdrawv1.Item{Id: id(1), Title: "x"}, BaseRevision: 0, UpdateMask: mask("title"),
 	})
 	wantCode(t, err, connect.CodeAborted)
 	var ce *service.ConflictError
@@ -241,8 +241,8 @@ func TestAgentCannotPromoteDraft(t *testing.T) {
 	d := feat(2, 1, "m")
 	d.GetFeature().Draft = true
 	svc, _, _ := newService(t, proj(1), d)
-	req := &kilnv1.UpdateItemRequest{
-		Item:         &kilnv1.Item{Id: id(2), Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{Draft: false}}},
+	req := &underdrawv1.UpdateItemRequest{
+		Item:         &underdrawv1.Item{Id: id(2), Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{Draft: false}}},
 		BaseRevision: 1, UpdateMask: mask("feature.draft"),
 	}
 	_, err := svc.UpdateItem(agent("a1"), req)
@@ -255,15 +255,15 @@ func TestAgentCannotPromoteDraft(t *testing.T) {
 func TestReparentTask(t *testing.T) {
 	svc, _, repo := newService(t, proj(1),
 		feat(2, 1, "c"), feat(3, 1, "m"),
-		task(4, 2, "m", kilnv1.Status_STATUS_READY),
-		task(5, 3, "c", kilnv1.Status_STATUS_READY),
-		task(6, 3, "p", kilnv1.Status_STATUS_READY))
+		task(4, 2, "m", underdrawv1.Status_STATUS_READY),
+		task(5, 3, "c", underdrawv1.Status_STATUS_READY),
+		task(6, 3, "p", underdrawv1.Status_STATUS_READY))
 	resp, err := svc.UpdateItem(user, reparent(4, 3, 1))
 	if err != nil {
 		t.Fatal(err)
 	}
 	it := resp.Item.Item
-	if it.GetTask().FeatureId != id(3) || it.GetTask().Rank <= "p" || it.GetTask().Status != kilnv1.Status_STATUS_READY {
+	if it.GetTask().FeatureId != id(3) || it.GetTask().Rank <= "p" || it.GetTask().Status != underdrawv1.Status_STATUS_READY {
 		t.Errorf("got %v", it)
 	}
 	h := history(t, repo, id(4))
@@ -278,8 +278,8 @@ func TestReparentTask(t *testing.T) {
 func TestReparentTaskCycle(t *testing.T) {
 	svc, _, repo := newService(t, proj(1),
 		feat(2, 1, "c"),
-		task(4, 2, "m", kilnv1.Status_STATUS_READY),
-		feat(3, 1, "m", dep(4, kilnv1.BlockUntil_BLOCK_UNTIL_DONE)))
+		task(4, 2, "m", underdrawv1.Status_STATUS_READY),
+		feat(3, 1, "m", dep(4, underdrawv1.BlockUntil_BLOCK_UNTIL_DONE)))
 	_, err := svc.UpdateItem(user, reparent(4, 3, 1))
 	wantCode(t, err, connect.CodeFailedPrecondition)
 	f, _ := openStore(t, repo).GetItem(id(4))
@@ -297,39 +297,39 @@ func TestReparentTaskCycle(t *testing.T) {
 func TestDeleteItem(t *testing.T) {
 	svc, _, repo := newService(t, proj(1),
 		feat(2, 1, "c"), feat(3, 1, "m"),
-		task(4, 2, "m", kilnv1.Status_STATUS_READY),
-		task(5, 3, "m", kilnv1.Status_STATUS_READY, dep(4, kilnv1.BlockUntil_BLOCK_UNTIL_DONE)))
+		task(4, 2, "m", underdrawv1.Status_STATUS_READY),
+		task(5, 3, "m", underdrawv1.Status_STATUS_READY, dep(4, underdrawv1.BlockUntil_BLOCK_UNTIL_DONE)))
 
-	_, err := svc.DeleteItem(agent("a1"), &kilnv1.DeleteItemRequest{Id: id(5), BaseRevision: 1})
+	_, err := svc.DeleteItem(agent("a1"), &underdrawv1.DeleteItemRequest{Id: id(5), BaseRevision: 1})
 	wantCode(t, err, connect.CodePermissionDenied)
-	_, err = svc.DeleteItem(user, &kilnv1.DeleteItemRequest{Id: id(2), BaseRevision: 1})
+	_, err = svc.DeleteItem(user, &underdrawv1.DeleteItemRequest{Id: id(2), BaseRevision: 1})
 	wantCode(t, err, connect.CodeFailedPrecondition) // has tasks
-	_, err = svc.DeleteItem(user, &kilnv1.DeleteItemRequest{Id: id(4), BaseRevision: 1})
+	_, err = svc.DeleteItem(user, &underdrawv1.DeleteItemRequest{Id: id(4), BaseRevision: 1})
 	wantCode(t, err, connect.CodeFailedPrecondition) // T5 depends on it
-	_, err = svc.DeleteItem(user, &kilnv1.DeleteItemRequest{Id: id(5), BaseRevision: 0})
+	_, err = svc.DeleteItem(user, &underdrawv1.DeleteItemRequest{Id: id(5), BaseRevision: 0})
 	wantCode(t, err, connect.CodeAborted)
 
-	if _, err := svc.DeleteItem(user, &kilnv1.DeleteItemRequest{Id: id(5), BaseRevision: 1}); err != nil {
+	if _, err := svc.DeleteItem(user, &underdrawv1.DeleteItemRequest{Id: id(5), BaseRevision: 1}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := openStore(t, repo).GetItem(id(5)); !errors.Is(err, core.ErrNotFound) {
 		t.Errorf("file still there: %v", err)
 	}
-	_, err = svc.GetItem(user, &kilnv1.GetItemRequest{Id: id(5)})
+	_, err = svc.GetItem(user, &underdrawv1.GetItemRequest{Id: id(5)})
 	wantCode(t, err, connect.CodeNotFound)
 	h := history(t, repo, id(5))
 	if len(h) != 1 {
 		t.Fatalf("got %d history entries", len(h))
 	}
 	ch := h[0].GetChange()
-	if ch.Type != kilnv1.ChangeType_CHANGE_TYPE_DELETED || ch.Revision != 2 || ch.Snapshot != nil ||
-		h[0].Actor.Type != kilnv1.ActorType_ACTOR_TYPE_USER ||
+	if ch.Type != underdrawv1.ChangeType_CHANGE_TYPE_DELETED || ch.Revision != 2 || ch.Snapshot != nil ||
+		h[0].Actor.Type != underdrawv1.ActorType_ACTOR_TYPE_USER ||
 		!h[0].CreateTime.AsTime().Equal(time.Date(2026, 11, 13, 10, 0, 0, 0, time.UTC)) {
 		t.Errorf("history %v", h[0])
 	}
 	// With T5 gone, T4 and then F2 can go.
 	for _, n := range []int{4, 2} {
-		if _, err := svc.DeleteItem(user, &kilnv1.DeleteItemRequest{Id: id(n), BaseRevision: 1}); err != nil {
+		if _, err := svc.DeleteItem(user, &underdrawv1.DeleteItemRequest{Id: id(n), BaseRevision: 1}); err != nil {
 			t.Errorf("delete %d: %v", n, err)
 		}
 	}
@@ -337,7 +337,7 @@ func TestDeleteItem(t *testing.T) {
 
 func featureOrder(t *testing.T, svc *service.Service) []string {
 	t.Helper()
-	resp, err := svc.ListItems(user, &kilnv1.ListItemsRequest{Kind: kilnv1.ItemKind_ITEM_KIND_FEATURE})
+	resp, err := svc.ListItems(user, &underdrawv1.ListItemsRequest{Kind: underdrawv1.ItemKind_ITEM_KIND_FEATURE})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -352,9 +352,9 @@ func TestMoveItem(t *testing.T) {
 	const a, b, c = 2, 3, 4
 	svc, _, repo := newService(t, proj(1),
 		feat(a, 1, "c"), feat(b, 1, "m"), feat(c, 1, "p"),
-		task(5, a, "m", kilnv1.Status_STATUS_READY), task(6, b, "m", kilnv1.Status_STATUS_READY))
+		task(5, a, "m", underdrawv1.Status_STATUS_READY), task(6, b, "m", underdrawv1.Status_STATUS_READY))
 
-	resp, err := svc.MoveItem(user, &kilnv1.MoveItemRequest{Id: id(c), BaseRevision: 1, Position: before(a)})
+	resp, err := svc.MoveItem(user, &underdrawv1.MoveItemRequest{Id: id(c), BaseRevision: 1, Position: before(a)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -365,12 +365,12 @@ func TestMoveItem(t *testing.T) {
 		t.Fatalf("got %v want %v", got, want)
 	}
 	h := history(t, repo, id(c))
-	if len(h) != 1 || h[0].GetChange().Type != kilnv1.ChangeType_CHANGE_TYPE_MOVED ||
+	if len(h) != 1 || h[0].GetChange().Type != underdrawv1.ChangeType_CHANGE_TYPE_MOVED ||
 		!slices.Equal(h[0].GetChange().ChangedFields, []string{"feature.rank"}) {
 		t.Errorf("history %v", h)
 	}
 
-	if _, err := svc.MoveItem(user, &kilnv1.MoveItemRequest{Id: id(a), BaseRevision: 1, Position: after(b)}); err != nil {
+	if _, err := svc.MoveItem(user, &underdrawv1.MoveItemRequest{Id: id(a), BaseRevision: 1, Position: after(b)}); err != nil {
 		t.Fatal(err)
 	}
 	if got, want := featureOrder(t, svc), []string{id(c), id(b), id(a)}; !slices.Equal(got, want) {
@@ -379,17 +379,17 @@ func TestMoveItem(t *testing.T) {
 
 	cases := map[string]struct {
 		ctx  context.Context
-		req  *kilnv1.MoveItemRequest
+		req  *underdrawv1.MoveItemRequest
 		code connect.Code
 	}{
-		"task after other feature's task": {user, &kilnv1.MoveItemRequest{Id: id(5), BaseRevision: 1, Position: after(6)}, connect.CodeInvalidArgument},
-		"task after a feature":            {user, &kilnv1.MoveItemRequest{Id: id(5), BaseRevision: 1, Position: after(a)}, connect.CodeInvalidArgument},
-		"project":                         {user, &kilnv1.MoveItemRequest{Id: id(1), BaseRevision: 1, Position: after(a)}, connect.CodeInvalidArgument},
-		"no position":                     {user, &kilnv1.MoveItemRequest{Id: id(b), BaseRevision: 1}, connect.CodeInvalidArgument},
-		"self":                            {user, &kilnv1.MoveItemRequest{Id: id(b), BaseRevision: 1, Position: after(b)}, connect.CodeInvalidArgument},
-		"unknown sibling":                 {user, &kilnv1.MoveItemRequest{Id: id(b), BaseRevision: 1, Position: after(99)}, connect.CodeNotFound},
-		"stale":                           {user, &kilnv1.MoveItemRequest{Id: id(b), BaseRevision: 7, Position: after(a)}, connect.CodeAborted},
-		"agent":                           {agent("a1"), &kilnv1.MoveItemRequest{Id: id(b), BaseRevision: 1, Position: after(a)}, connect.CodePermissionDenied},
+		"task after other feature's task": {user, &underdrawv1.MoveItemRequest{Id: id(5), BaseRevision: 1, Position: after(6)}, connect.CodeInvalidArgument},
+		"task after a feature":            {user, &underdrawv1.MoveItemRequest{Id: id(5), BaseRevision: 1, Position: after(a)}, connect.CodeInvalidArgument},
+		"project":                         {user, &underdrawv1.MoveItemRequest{Id: id(1), BaseRevision: 1, Position: after(a)}, connect.CodeInvalidArgument},
+		"no position":                     {user, &underdrawv1.MoveItemRequest{Id: id(b), BaseRevision: 1}, connect.CodeInvalidArgument},
+		"self":                            {user, &underdrawv1.MoveItemRequest{Id: id(b), BaseRevision: 1, Position: after(b)}, connect.CodeInvalidArgument},
+		"unknown sibling":                 {user, &underdrawv1.MoveItemRequest{Id: id(b), BaseRevision: 1, Position: after(99)}, connect.CodeNotFound},
+		"stale":                           {user, &underdrawv1.MoveItemRequest{Id: id(b), BaseRevision: 7, Position: after(a)}, connect.CodeAborted},
+		"agent":                           {agent("a1"), &underdrawv1.MoveItemRequest{Id: id(b), BaseRevision: 1, Position: after(a)}, connect.CodePermissionDenied},
 	}
 	for name, tc := range cases {
 		_, err := svc.MoveItem(tc.ctx, tc.req)
@@ -401,8 +401,8 @@ func TestMoveItem(t *testing.T) {
 
 func TestMoveTask(t *testing.T) {
 	svc, _, repo := newService(t, proj(1), feat(2, 1, "m"),
-		task(3, 2, "c", kilnv1.Status_STATUS_READY), task(4, 2, "m", kilnv1.Status_STATUS_READY))
-	resp, err := svc.MoveItem(user, &kilnv1.MoveItemRequest{Id: id(4), BaseRevision: 1, Position: before(3)})
+		task(3, 2, "c", underdrawv1.Status_STATUS_READY), task(4, 2, "m", underdrawv1.Status_STATUS_READY))
+	resp, err := svc.MoveItem(user, &underdrawv1.MoveItemRequest{Id: id(4), BaseRevision: 1, Position: before(3)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -417,7 +417,7 @@ func TestMoveTask(t *testing.T) {
 
 func TestMoveItemTiedRanks(t *testing.T) {
 	svc, _, _ := newService(t, proj(1), feat(2, 1, "m"), feat(3, 1, "m"), feat(4, 1, "z"))
-	_, err := svc.MoveItem(user, &kilnv1.MoveItemRequest{Id: id(4), BaseRevision: 1, Position: before(3)})
+	_, err := svc.MoveItem(user, &underdrawv1.MoveItemRequest{Id: id(4), BaseRevision: 1, Position: before(3)})
 	wantCode(t, err, connect.CodeFailedPrecondition)
 	if !strings.Contains(err.Error(), "ranks tied; move a neighbor first") {
 		t.Errorf("message %q", err)
@@ -429,13 +429,13 @@ func TestCommitFailureLeavesMemory(t *testing.T) {
 		t.Skip("root ignores directory permissions")
 	}
 	svc, _, repo := newService(t, proj(1))
-	dir := filepath.Join(repo, ".kiln", "items")
+	dir := filepath.Join(repo, ".underdraw", "items")
 	if err := os.Chmod(dir, 0o500); err != nil {
 		t.Fatal(err)
 	}
 	defer os.Chmod(dir, 0o755)
-	_, err := svc.UpdateItem(user, &kilnv1.UpdateItemRequest{
-		Item: &kilnv1.Item{Id: id(1), Title: "x"}, BaseRevision: 1, UpdateMask: mask("title"),
+	_, err := svc.UpdateItem(user, &underdrawv1.UpdateItemRequest{
+		Item: &underdrawv1.Item{Id: id(1), Title: "x"}, BaseRevision: 1, UpdateMask: mask("title"),
 	})
 	wantCode(t, err, connect.CodeInternal)
 	if got := getInfo(t, svc, 1).Item; got.Revision != 1 || got.Title != "Project 1" {
@@ -460,13 +460,13 @@ func TestHistoryFailureIsLoggedNotReturned(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dir := filepath.Join(repo, ".kiln", "history")
+	dir := filepath.Join(repo, ".underdraw", "history")
 	if err := os.Chmod(dir, 0o500); err != nil {
 		t.Fatal(err)
 	}
 	defer os.Chmod(dir, 0o755)
-	resp, err := svc.UpdateItem(user, &kilnv1.UpdateItemRequest{
-		Item: &kilnv1.Item{Id: id(1), Title: "x"}, BaseRevision: 1, UpdateMask: mask("title"),
+	resp, err := svc.UpdateItem(user, &underdrawv1.UpdateItemRequest{
+		Item: &underdrawv1.Item{Id: id(1), Title: "x"}, BaseRevision: 1, UpdateMask: mask("title"),
 	})
 	if err != nil {
 		t.Fatalf("got %v, want success: the item file is saved", err)

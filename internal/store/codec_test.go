@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
 )
 
 // protojson's extra spaces only appear in some builds, so this feeds them in
@@ -20,11 +20,11 @@ func TestNormalizeJSONStripsExtraSpaces(t *testing.T) {
 }
 
 func TestMarshalIsDeterministic(t *testing.T) {
-	item := &kilnv1.Item{
+	item := &underdrawv1.Item{
 		Id: "01ARZ3NDEKTSV4RRFFQ69G5FAV", Revision: 3, Title: "Sync engine",
-		Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{
-			FeatureId: "01ARZ3NDEKTSV4RRFFQ69G5FAW", Status: kilnv1.Status_STATUS_READY, Rank: "i",
-			WorkState: &kilnv1.WorkState{Extra: map[string]string{"b": "2", "a": "1"}},
+		Kind: &underdrawv1.Item_Task{Task: &underdrawv1.Task{
+			FeatureId: "01ARZ3NDEKTSV4RRFFQ69G5FAW", Status: underdrawv1.Status_STATUS_READY, Rank: "i",
+			WorkState: &underdrawv1.WorkState{Extra: map[string]string{"b": "2", "a": "1"}},
 		}},
 	}
 	want := `{
@@ -51,7 +51,7 @@ func TestMarshalIsDeterministic(t *testing.T) {
 	if err != nil || string(got) != want {
 		t.Fatalf("marshal:\n%s\nerr=%v", got, err)
 	}
-	var back kilnv1.Item
+	var back underdrawv1.Item
 	if err := unmarshal([]byte(want), &back); err != nil || !proto.Equal(&back, item) {
 		t.Fatalf("round trip failed: %v", err)
 	}

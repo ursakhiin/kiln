@@ -23,7 +23,7 @@ web/node_modules: web/package-lock.json
 	touch web/node_modules
 
 build: web
-	go build -o bin/kiln ./cmd/kiln
+	go build -o bin/underdraw ./cmd/underdraw
 
 test:
 	go test ./...

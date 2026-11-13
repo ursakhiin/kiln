@@ -1,2 +1,2 @@
-// Package watch watches .kiln/ for outside changes (hand edits, git pull, branch switches) and triggers reloads.
+// Package watch watches .underdraw/ for outside changes (hand edits, git pull, branch switches) and triggers reloads.
 package watch

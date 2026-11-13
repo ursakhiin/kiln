@@ -1,4 +1,4 @@
-module github.com/ursakhiin/kiln
+module github.com/ursakhiin/underdraw
 
 go 1.27.1
 

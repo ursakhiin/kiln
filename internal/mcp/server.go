@@ -9,25 +9,25 @@ import (
 	sdk "github.com/modelcontextprotocol/go-sdk/mcp"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/gen/go/kiln/v1/kilnv1mcp"
-	"github.com/ursakhiin/kiln/internal/service"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/gen/go/underdraw/v1/underdrawv1mcp"
+	"github.com/ursakhiin/underdraw/internal/service"
 )
 
-var _ kilnv1mcp.KilnServiceToolHandler = (*service.Service)(nil)
+var _ underdrawv1mcp.UnderdrawServiceToolHandler = (*service.Service)(nil)
 
 // sessionTimeout closes MCP sessions that have been idle this long.
 const sessionTimeout = 2 * time.Hour
 
 // noSessionText is the error message for a tool call from a session without
 // an ID, which can't be identified as an agent.
-const noSessionText = "Kiln needs a stateful MCP session (no session ID); connect over Kiln's streamable HTTP endpoint"
+const noSessionText = "Underdraw needs a stateful MCP session (no session ID); connect over Underdraw's streamable HTTP endpoint"
 
-// NewServer returns an MCP server exposing every generated KilnService tool,
+// NewServer returns an MCP server exposing every generated UnderdrawService tool,
 // backed by svc.
 func NewServer(svc *service.Service, version string) *sdk.Server {
-	srv := sdk.NewServer(&sdk.Implementation{Name: "kiln", Version: version}, nil)
-	for _, tool := range kilnv1mcp.KilnServiceTools {
+	srv := sdk.NewServer(&sdk.Implementation{Name: "underdraw", Version: version}, nil)
+	for _, tool := range underdrawv1mcp.UnderdrawServiceTools {
 		srv.AddTool(&sdk.Tool{
 			Name:        tool.Name,
 			Description: tool.Description,
@@ -48,7 +48,7 @@ func NewHandler(srv *sdk.Server) http.Handler {
 // toolHandler decodes the arguments into the tool's request and calls the
 // service as the agent of the calling session. It never returns a Go error:
 // that would become a protocol error the model can't see.
-func toolHandler(svc *service.Service, tool kilnv1mcp.KilnServiceTool) sdk.ToolHandler {
+func toolHandler(svc *service.Service, tool underdrawv1mcp.UnderdrawServiceTool) sdk.ToolHandler {
 	return func(ctx context.Context, req *sdk.CallToolRequest) (*sdk.CallToolResult, error) {
 		in := tool.NewRequest()
 		args, err := normalizeArgs(req.Params.Arguments, in.ProtoReflect().Descriptor())
@@ -75,7 +75,7 @@ func toolHandler(svc *service.Service, tool kilnv1mcp.KilnServiceTool) sdk.ToolH
 // callerOf identifies the session as an agent: its ID is the MCP session ID,
 // and its host is the client's name and version.
 func callerOf(req *sdk.CallToolRequest) service.Caller {
-	c := service.Caller{Actor: kilnv1.ActorType_ACTOR_TYPE_AGENT, AgentID: req.Session.ID()}
+	c := service.Caller{Actor: underdrawv1.ActorType_ACTOR_TYPE_AGENT, AgentID: req.Session.ID()}
 	if p := req.Session.InitializeParams(); p != nil && p.ClientInfo != nil {
 		c.Host = p.ClientInfo.Name
 		c.HostVersion = p.ClientInfo.Version

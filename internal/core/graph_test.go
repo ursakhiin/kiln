@@ -3,24 +3,24 @@ package core_test
 import (
 	"testing"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
 )
 
 func TestWouldCreateCycle(t *testing.T) {
 	// F1 is a feature; T1 is a task in F1; T2 depends on T1; F2 depends on T2.
-	items := map[string]*kilnv1.Item{
-		"F1": {Id: "F1", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{}}},
-		"T1": {Id: "T1", Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{FeatureId: "F1"}}},
-		"T2": {Id: "T2", Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{FeatureId: "F1",
-			DependsOn: []*kilnv1.Dependency{{ItemId: "T1"}}}}},
-		"F2": {Id: "F2", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{
-			DependsOn: []*kilnv1.Dependency{{ItemId: "T2"}}}}},
+	items := map[string]*underdrawv1.Item{
+		"F1": {Id: "F1", Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{}}},
+		"T1": {Id: "T1", Kind: &underdrawv1.Item_Task{Task: &underdrawv1.Task{FeatureId: "F1"}}},
+		"T2": {Id: "T2", Kind: &underdrawv1.Item_Task{Task: &underdrawv1.Task{FeatureId: "F1",
+			DependsOn: []*underdrawv1.Dependency{{ItemId: "T1"}}}}},
+		"F2": {Id: "F2", Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{
+			DependsOn: []*underdrawv1.Dependency{{ItemId: "T2"}}}}},
 		// F3 holds T3; F4 depends on F3.
-		"F3": {Id: "F3", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{}}},
-		"T3": {Id: "T3", Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{FeatureId: "F3"}}},
-		"F4": {Id: "F4", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{
-			DependsOn: []*kilnv1.Dependency{{ItemId: "F3"}}}}},
+		"F3": {Id: "F3", Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{}}},
+		"T3": {Id: "T3", Kind: &underdrawv1.Item_Task{Task: &underdrawv1.Task{FeatureId: "F3"}}},
+		"F4": {Id: "F4", Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{
+			DependsOn: []*underdrawv1.Dependency{{ItemId: "F3"}}}}},
 	}
 	g := mapGraph(items)
 	for _, c := range []struct {
@@ -48,9 +48,9 @@ func TestWouldCreateCycle(t *testing.T) {
 // A cycle that already exists (e.g. from a hand edit) must not make the
 // search loop forever.
 func TestWouldCreateCycleTerminatesOnExistingCycle(t *testing.T) {
-	dependsOn := func(id string) *kilnv1.Item {
-		return &kilnv1.Item{Id: id, Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{
-			DependsOn: []*kilnv1.Dependency{{ItemId: map[string]string{"A": "B", "B": "A"}[id]}}}}}
+	dependsOn := func(id string) *underdrawv1.Item {
+		return &underdrawv1.Item{Id: id, Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{
+			DependsOn: []*underdrawv1.Dependency{{ItemId: map[string]string{"A": "B", "B": "A"}[id]}}}}}
 	}
 	g := mapGraph{"A": dependsOn("A"), "B": dependsOn("B")}
 	if core.WouldCreateCycle("C", "A", g) {
@@ -61,10 +61,10 @@ func TestWouldCreateCycleTerminatesOnExistingCycle(t *testing.T) {
 func TestHasCycle(t *testing.T) {
 	// F1 has T1; F2 has no tasks and depends on T1.
 	g := mapGraph{
-		"F1": {Id: "F1", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{}}},
-		"T1": {Id: "T1", Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{FeatureId: "F1"}}},
-		"F2": {Id: "F2", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{
-			DependsOn: []*kilnv1.Dependency{{ItemId: "T1"}}}}},
+		"F1": {Id: "F1", Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{}}},
+		"T1": {Id: "T1", Kind: &underdrawv1.Item_Task{Task: &underdrawv1.Task{FeatureId: "F1"}}},
+		"F2": {Id: "F2", Kind: &underdrawv1.Item_Feature{Feature: &underdrawv1.Feature{
+			DependsOn: []*underdrawv1.Dependency{{ItemId: "T1"}}}}},
 	}
 	if core.HasCycle([]string{"F2"}, g) {
 		t.Error("HasCycle reported a cycle in an acyclic graph")
@@ -77,9 +77,9 @@ func TestHasCycle(t *testing.T) {
 }
 
 // mapGraph is a core.Graph over an in-memory set of items.
-type mapGraph map[string]*kilnv1.Item
+type mapGraph map[string]*underdrawv1.Item
 
-func (g mapGraph) Item(id string) *kilnv1.Item { return g[id] }
+func (g mapGraph) Item(id string) *underdrawv1.Item { return g[id] }
 
 func (g mapGraph) Tasks(featureID string) []string {
 	var ids []string

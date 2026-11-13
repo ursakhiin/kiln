@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"slices"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
 )
 
 // secretPatterns match common credential formats. Work state is committed to
@@ -29,7 +29,7 @@ var credentialRef = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_.-]{0,127}$`)
 
 // CheckWorkState returns ErrInvalidArgument if work state contains anything
 // that looks like a credential value. Errors name the field, never the value.
-func CheckWorkState(ws *kilnv1.WorkState) error {
+func CheckWorkState(ws *underdrawv1.WorkState) error {
 	if ws == nil {
 		return nil
 	}

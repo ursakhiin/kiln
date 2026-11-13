@@ -3,7 +3,7 @@ package core_test
 import (
 	"testing"
 
-	"github.com/ursakhiin/kiln/internal/core"
+	"github.com/ursakhiin/underdraw/internal/core"
 )
 
 func TestNewIDIsValidAndIncreasing(t *testing.T) {

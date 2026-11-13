@@ -5,15 +5,15 @@ import (
 	"strings"
 	"testing"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
 )
 
 func TestCheckWorkState(t *testing.T) {
 	if err := core.CheckWorkState(nil); err != nil {
 		t.Errorf("nil: %v", err)
 	}
-	ok := &kilnv1.WorkState{
+	ok := &underdrawv1.WorkState{
 		Branch:         "feat/x",
 		CredentialRefs: []string{"GITHUB_TOKEN"},
 		Extra:          map[string]string{"pr": "42"},
@@ -23,7 +23,7 @@ func TestCheckWorkState(t *testing.T) {
 	}
 	// Agents will name branches and worktrees after task IDs; "task-<ULID>"
 	// contains "sk-" followed by 26 alphanumerics.
-	named := &kilnv1.WorkState{
+	named := &underdrawv1.WorkState{
 		Branch:       "task-" + core.NewID(),
 		WorktreePath: ".claude/worktrees/task-" + core.NewID(),
 		Progress:     "continues task-" + strings.ToLower(core.NewID()),
@@ -46,20 +46,20 @@ func TestCheckWorkStateRejectsSecrets(t *testing.T) {
 
 	for _, row := range []struct {
 		name   string
-		ws     *kilnv1.WorkState
+		ws     *underdrawv1.WorkState
 		secret string
 	}{
-		{"progress", &kilnv1.WorkState{Progress: "used " + aws}, aws},
-		{"branch", &kilnv1.WorkState{Branch: ghp}, ghp},
-		{"pull_request_url", &kilnv1.WorkState{PullRequestUrl: "https://x/" + pat}, pat},
-		{"files", &kilnv1.WorkState{Files: []string{slack}}, slack},
-		{"extra value", &kilnv1.WorkState{Extra: map[string]string{"k": anthropic}}, anthropic},
-		{"extra key", &kilnv1.WorkState{Extra: map[string]string{sk: "v"}}, sk},
-		{"transcript_path", &kilnv1.WorkState{Session: &kilnv1.AgentSession{TranscriptPath: key}}, key},
-		{"session_id", &kilnv1.WorkState{Session: &kilnv1.AgentSession{SessionId: jwt}}, jwt},
-		{"head_commit openai project key", &kilnv1.WorkState{HeadCommit: "key=" + openaiProject}, openaiProject},
-		{"credential ref token", &kilnv1.WorkState{CredentialRefs: []string{ghp}}, ghp},
-		{"credential ref not a name", &kilnv1.WorkState{CredentialRefs: []string{"my token"}}, "my token"},
+		{"progress", &underdrawv1.WorkState{Progress: "used " + aws}, aws},
+		{"branch", &underdrawv1.WorkState{Branch: ghp}, ghp},
+		{"pull_request_url", &underdrawv1.WorkState{PullRequestUrl: "https://x/" + pat}, pat},
+		{"files", &underdrawv1.WorkState{Files: []string{slack}}, slack},
+		{"extra value", &underdrawv1.WorkState{Extra: map[string]string{"k": anthropic}}, anthropic},
+		{"extra key", &underdrawv1.WorkState{Extra: map[string]string{sk: "v"}}, sk},
+		{"transcript_path", &underdrawv1.WorkState{Session: &underdrawv1.AgentSession{TranscriptPath: key}}, key},
+		{"session_id", &underdrawv1.WorkState{Session: &underdrawv1.AgentSession{SessionId: jwt}}, jwt},
+		{"head_commit openai project key", &underdrawv1.WorkState{HeadCommit: "key=" + openaiProject}, openaiProject},
+		{"credential ref token", &underdrawv1.WorkState{CredentialRefs: []string{ghp}}, ghp},
+		{"credential ref not a name", &underdrawv1.WorkState{CredentialRefs: []string{"my token"}}, "my token"},
 	} {
 		err := core.CheckWorkState(row.ws)
 		if !errors.Is(err, core.ErrInvalidArgument) {

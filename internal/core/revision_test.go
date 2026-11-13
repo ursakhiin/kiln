@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ursakhiin/kiln/internal/core"
+	"github.com/ursakhiin/underdraw/internal/core"
 )
 
 func TestCheckRevision(t *testing.T) {

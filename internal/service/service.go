@@ -11,9 +11,9 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
-	"github.com/ursakhiin/kiln/internal/store"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
+	"github.com/ursakhiin/underdraw/internal/store"
 )
 
 // DefaultClaimTTL is how long a claim lasts after its agent's last call.
@@ -26,13 +26,13 @@ type Options struct {
 	Logger   *slog.Logger     // nil → discard
 }
 
-// Service is Kiln's single write path. It keeps every item in memory, and
+// Service is Underdraw's single write path. It keeps every item in memory, and
 // every method holds mu for its whole body. It hands out clones, never its
 // cached items.
 type Service struct {
 	mu       sync.Mutex
 	store    *store.Store
-	items    map[string]*kilnv1.Item
+	items    map[string]*underdrawv1.Item
 	now      func() time.Time
 	claimTTL time.Duration
 	log      *slog.Logger
@@ -48,7 +48,7 @@ type Service struct {
 func New(st *store.Store, opts Options) (*Service, []*store.FileError, error) {
 	s := &Service{
 		store:    st,
-		items:    map[string]*kilnv1.Item{},
+		items:    map[string]*underdrawv1.Item{},
 		now:      opts.Now,
 		claimTTL: opts.ClaimTTL,
 		log:      opts.Logger,
@@ -92,7 +92,7 @@ func (s *Service) begin(ctx context.Context) (Caller, func(), error) {
 	}
 	now := s.now()
 	s.expireClaims(now)
-	if c.Actor == kilnv1.ActorType_ACTOR_TYPE_AGENT {
+	if c.Actor == underdrawv1.ActorType_ACTOR_TYPE_AGENT {
 		s.renewClaims(c.AgentID, now)
 	}
 	return c, s.mu.Unlock, nil
@@ -113,12 +113,12 @@ func (s *Service) begin(ctx context.Context) (Caller, func(), error) {
 // unchanged. If appending the history entry fails, the item file is already
 // saved and is the source of truth, so commit logs the failure at Error and
 // returns nil: reporting an error would tell the caller the change was lost.
-func (s *Service) commit(caller Caller, item *kilnv1.Item, typ kilnv1.ChangeType, fields []string) error {
+func (s *Service) commit(caller Caller, item *underdrawv1.Item, typ underdrawv1.ChangeType, fields []string) error {
 	if p := s.pending[item.GetId()]; p != nil && (p.actor != caller.Actor || p.agentID != caller.AgentID) {
 		s.recordPendingWorkState(item.GetId())
 	}
 	now := timestamppb.New(s.now())
-	if typ == kilnv1.ChangeType_CHANGE_TYPE_CREATED {
+	if typ == underdrawv1.ChangeType_CHANGE_TYPE_CREATED {
 		item.Revision = 1
 		item.CreateTime = now
 	} else {
@@ -132,24 +132,24 @@ func (s *Service) commit(caller Caller, item *kilnv1.Item, typ kilnv1.ChangeType
 	if ws := s.takePending(item.GetId()); len(ws) > 0 {
 		fields = append(slices.Clip(fields), ws...)
 	}
-	s.appendHistory(caller.actor(), item.GetId(), now, &kilnv1.ChangeEvent{
+	s.appendHistory(caller.actor(), item.GetId(), now, &underdrawv1.ChangeEvent{
 		Type:          typ,
 		Revision:      item.GetRevision(),
 		ChangedFields: fields,
-		Snapshot:      proto.Clone(item).(*kilnv1.Item),
+		Snapshot:      proto.Clone(item).(*underdrawv1.Item),
 	})
 	return nil
 }
 
 // appendHistory appends one history entry. A failure is logged at Error, not
 // returned: callers use it after the change itself is saved.
-func (s *Service) appendHistory(actor *kilnv1.Actor, itemID string, at *timestamppb.Timestamp, ev *kilnv1.ChangeEvent) {
-	err := s.store.AppendHistory(&kilnv1.HistoryEntry{
+func (s *Service) appendHistory(actor *underdrawv1.Actor, itemID string, at *timestamppb.Timestamp, ev *underdrawv1.ChangeEvent) {
+	err := s.store.AppendHistory(&underdrawv1.HistoryEntry{
 		Id:         core.NewID(),
 		ItemId:     itemID,
 		CreateTime: at,
 		Actor:      actor,
-		Kind:       &kilnv1.HistoryEntry_Change{Change: ev},
+		Kind:       &underdrawv1.HistoryEntry_Change{Change: ev},
 	})
 	if err != nil {
 		s.log.Error("item saved but history entry not written",
@@ -159,7 +159,7 @@ func (s *Service) appendHistory(actor *kilnv1.Actor, itemID string, at *timestam
 
 // checkBase returns a *ConflictError if a write based on revision base would
 // overwrite a newer revision of item.
-func (s *Service) checkBase(item *kilnv1.Item, base int64) error {
+func (s *Service) checkBase(item *underdrawv1.Item, base int64) error {
 	if core.CheckRevision(item.GetRevision(), base) != nil {
 		return &ConflictError{Current: s.info(item)}
 	}
@@ -167,7 +167,7 @@ func (s *Service) checkBase(item *kilnv1.Item, base int64) error {
 }
 
 // lookup returns the cached item with id, checking the ID first.
-func (s *Service) lookup(id string) (*kilnv1.Item, error) {
+func (s *Service) lookup(id string) (*underdrawv1.Item, error) {
 	if !core.ValidID(id) {
 		return nil, fmt.Errorf("invalid ID %q: %w", id, core.ErrInvalidArgument)
 	}

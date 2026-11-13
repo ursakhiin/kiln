@@ -10,29 +10,29 @@ import (
 	"connectrpc.com/connect"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/service"
-	"github.com/ursakhiin/kiln/internal/store"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/service"
+	"github.com/ursakhiin/underdraw/internal/store"
 )
 
 const t1 = 3 // the task in oneTask
 
 // updateWS records ws on task n for ctx, with the given mask paths.
-func updateWS(svc *service.Service, ctx context.Context, n int, ws *kilnv1.WorkState, paths ...string) (*kilnv1.UpdateWorkStateResponse, error) {
-	req := &kilnv1.UpdateWorkStateRequest{Id: id(n), WorkState: ws}
+func updateWS(svc *service.Service, ctx context.Context, n int, ws *underdrawv1.WorkState, paths ...string) (*underdrawv1.UpdateWorkStateResponse, error) {
+	req := &underdrawv1.UpdateWorkStateRequest{Id: id(n), WorkState: ws}
 	if len(paths) > 0 {
 		req.UpdateMask = mask(paths...)
 	}
 	return svc.UpdateWorkState(ctx, req)
 }
 
-// recordBranch has ctx record branch kiln/t1 and some progress on task n.
+// recordBranch has ctx record branch underdraw/t1 and some progress on task n.
 func recordBranch(t *testing.T, svc *service.Service, ctx context.Context, n int) {
 	t.Helper()
-	_, err := updateWS(svc, ctx, n, &kilnv1.WorkState{
-		Branch:   "kiln/t1",
+	_, err := updateWS(svc, ctx, n, &underdrawv1.WorkState{
+		Branch:   "underdraw/t1",
 		Progress: "half done",
-		Session:  &kilnv1.AgentSession{Host: "evil", HostVersion: "6.6.6"},
+		Session:  &underdrawv1.AgentSession{Host: "evil", HostVersion: "6.6.6"},
 	}, "branch", "progress", "session")
 	if err != nil {
 		t.Fatal(err)
@@ -40,19 +40,19 @@ func recordBranch(t *testing.T, svc *service.Service, ctx context.Context, n int
 }
 
 // taskHistory reads item n's history straight from the repo, oldest first.
-func taskHistory(t *testing.T, repo string, n int) []*kilnv1.HistoryEntry {
+func taskHistory(t *testing.T, repo string, n int) []*underdrawv1.HistoryEntry {
 	t.Helper()
 	es := history(t, repo, id(n))
-	slices.SortFunc(es, func(a, b *kilnv1.HistoryEntry) int { return strings.Compare(a.GetId(), b.GetId()) })
+	slices.SortFunc(es, func(a, b *underdrawv1.HistoryEntry) int { return strings.Compare(a.GetId(), b.GetId()) })
 	return es
 }
 
 // workStateEntries returns item n's WORK_STATE_UPDATED entries.
-func workStateEntries(t *testing.T, repo string, n int) []*kilnv1.HistoryEntry {
+func workStateEntries(t *testing.T, repo string, n int) []*underdrawv1.HistoryEntry {
 	t.Helper()
-	var out []*kilnv1.HistoryEntry
+	var out []*underdrawv1.HistoryEntry
 	for _, e := range taskHistory(t, repo, n) {
-		if e.GetChange().GetType() == kilnv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED {
+		if e.GetChange().GetType() == underdrawv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED {
 			out = append(out, e)
 		}
 	}
@@ -91,7 +91,7 @@ func TestUpdateWorkState(t *testing.T) {
 		t.Fatal(err)
 	}
 	ws := saved.GetTask().GetWorkState()
-	if ws.GetBranch() != "kiln/t1" || saved.GetRevision() != 2 {
+	if ws.GetBranch() != "underdraw/t1" || saved.GetRevision() != 2 {
 		t.Fatalf("saved = %v", saved)
 	}
 	if ws.GetSession().GetHost() != "test-host" || ws.GetSession().GetHostVersion() != "1.0" {
@@ -104,11 +104,11 @@ func TestUpdateWorkState(t *testing.T) {
 		t.Fatal("item update_time changed")
 	}
 
-	_, err = updateWS(svc, agent("a1"), t1, &kilnv1.WorkState{}, "nope")
+	_, err = updateWS(svc, agent("a1"), t1, &underdrawv1.WorkState{}, "nope")
 	wantCode(t, err, connect.CodeInvalidArgument)
-	_, err = updateWS(svc, agent("a1"), 2, &kilnv1.WorkState{})
+	_, err = updateWS(svc, agent("a1"), 2, &underdrawv1.WorkState{})
 	wantCode(t, err, connect.CodeInvalidArgument)
-	_, err = updateWS(svc, agent("a1"), 99, &kilnv1.WorkState{})
+	_, err = updateWS(svc, agent("a1"), 99, &underdrawv1.WorkState{})
 	wantCode(t, err, connect.CodeNotFound)
 }
 
@@ -116,17 +116,17 @@ func TestUpdateWorkStateMask(t *testing.T) {
 	svc, _, _ := newService(t, oneTask()...)
 	claim(t, svc, agent("a1"), t1)
 	recordBranch(t, svc, agent("a1"), t1)
-	resp, err := updateWS(svc, agent("a1"), t1, &kilnv1.WorkState{Progress: "done"}, "progress")
+	resp, err := updateWS(svc, agent("a1"), t1, &underdrawv1.WorkState{Progress: "done"}, "progress")
 	if err != nil {
 		t.Fatal(err)
 	}
 	ws := resp.GetTask().GetItem().GetTask().GetWorkState()
-	if ws.GetBranch() != "kiln/t1" || ws.GetProgress() != "done" {
+	if ws.GetBranch() != "underdraw/t1" || ws.GetProgress() != "done" {
 		t.Fatalf("work state = %v", ws)
 	}
 
 	// An empty mask replaces every field.
-	resp, err = updateWS(svc, agent("a1"), t1, &kilnv1.WorkState{Progress: "all"})
+	resp, err = updateWS(svc, agent("a1"), t1, &underdrawv1.WorkState{Progress: "all"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,9 +139,9 @@ func TestUpdateWorkStateMask(t *testing.T) {
 func TestUpdateWorkStatePermission(t *testing.T) {
 	svc, _, _ := newService(t, oneTask()...)
 	claim(t, svc, agent("a1"), t1)
-	_, err := updateWS(svc, agent("a2"), t1, &kilnv1.WorkState{Branch: "x"}, "branch")
+	_, err := updateWS(svc, agent("a2"), t1, &underdrawv1.WorkState{Branch: "x"}, "branch")
 	wantCode(t, err, connect.CodeFailedPrecondition)
-	resp, err := updateWS(svc, user, t1, &kilnv1.WorkState{Branch: "x"}, "branch")
+	resp, err := updateWS(svc, user, t1, &underdrawv1.WorkState{Branch: "x"}, "branch")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +154,7 @@ func TestUpdateWorkStateRejectsSecret(t *testing.T) {
 	svc, _, _ := newService(t, oneTask()...)
 	claim(t, svc, agent("a1"), t1)
 	_, err := updateWS(svc, agent("a1"), t1,
-		&kilnv1.WorkState{Progress: "token ghp_" + strings.Repeat("a", 36)}, "progress")
+		&underdrawv1.WorkState{Progress: "token ghp_" + strings.Repeat("a", 36)}, "progress")
 	wantCode(t, err, connect.CodeInvalidArgument)
 	if strings.Contains(err.Error(), "ghp_") {
 		t.Fatalf("error leaks the secret: %v", err)
@@ -167,7 +167,7 @@ func TestUpdateWorkStateRejectsSecret(t *testing.T) {
 func TestWorkStateRecordedInNextEntry(t *testing.T) {
 	svc, _, repo := newService(t, oneTask()...)
 	rev := claim(t, svc, agent("a1"), t1).GetTask().GetItem().GetRevision()
-	_, err := updateWS(svc, agent("a1"), t1, &kilnv1.WorkState{Branch: "kiln/t1"}, "branch")
+	_, err := updateWS(svc, agent("a1"), t1, &underdrawv1.WorkState{Branch: "underdraw/t1"}, "branch")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,7 +181,7 @@ func TestWorkStateRecordedInNextEntry(t *testing.T) {
 	if !slices.Equal(last.GetChangedFields(), want) {
 		t.Fatalf("changed_fields = %v, want %v", last.GetChangedFields(), want)
 	}
-	if got := last.GetSnapshot().GetTask().GetWorkState().GetBranch(); got != "kiln/t1" {
+	if got := last.GetSnapshot().GetTask().GetWorkState().GetBranch(); got != "underdraw/t1" {
 		t.Fatalf("snapshot branch = %q", got)
 	}
 	if n := len(workStateEntries(t, repo, t1)); n != 0 {
@@ -193,12 +193,12 @@ func TestWorkStateRecordedOnRelease(t *testing.T) {
 	svc, _, repo := newService(t, oneTask()...)
 	claim(t, svc, agent("a1"), t1)
 	recordBranch(t, svc, agent("a1"), t1)
-	if _, err := svc.ReleaseTask(agent("a1"), &kilnv1.ReleaseTaskRequest{Id: id(t1)}); err != nil {
+	if _, err := svc.ReleaseTask(agent("a1"), &underdrawv1.ReleaseTaskRequest{Id: id(t1)}); err != nil {
 		t.Fatal(err)
 	}
 	es := taskHistory(t, repo, t1)
 	last := es[len(es)-1].GetChange()
-	if last.GetType() != kilnv1.ChangeType_CHANGE_TYPE_STATUS_CHANGED ||
+	if last.GetType() != underdrawv1.ChangeType_CHANGE_TYPE_STATUS_CHANGED ||
 		!slices.Contains(last.GetChangedFields(), "task.work_state.branch") {
 		t.Fatalf("release entry = %v", last)
 	}
@@ -212,19 +212,19 @@ func TestWorkStateRecordedOnExpiry(t *testing.T) {
 	claim(t, svc, agent("a1"), t1)
 	recordBranch(t, svc, agent("a1"), t1)
 	clk.Advance(31 * time.Minute)
-	if _, err := svc.GetItem(user, &kilnv1.GetItemRequest{Id: id(1)}); err != nil {
+	if _, err := svc.GetItem(user, &underdrawv1.GetItemRequest{Id: id(1)}); err != nil {
 		t.Fatal(err)
 	}
 	es := workStateEntries(t, repo, t1)
 	if len(es) != 1 || es[0].GetActor().GetAgentId() != "a1" ||
-		es[0].GetActor().GetType() != kilnv1.ActorType_ACTOR_TYPE_AGENT {
+		es[0].GetActor().GetType() != underdrawv1.ActorType_ACTOR_TYPE_AGENT {
 		t.Fatalf("WORK_STATE_UPDATED entries = %v", es)
 	}
 	ch := es[0].GetChange()
 	if want := []string{"task.work_state.branch", "task.work_state.progress", "task.work_state.session"}; !slices.Equal(ch.GetChangedFields(), want) {
 		t.Fatalf("changed_fields = %v, want %v", ch.GetChangedFields(), want)
 	}
-	if ch.GetRevision() != 2 || ch.GetSnapshot().GetTask().GetWorkState().GetBranch() != "kiln/t1" {
+	if ch.GetRevision() != 2 || ch.GetSnapshot().GetTask().GetWorkState().GetBranch() != "underdraw/t1" {
 		t.Fatalf("change = %v", ch)
 	}
 	if es[0].GetActor().GetSession().GetHost() != "test-host" {
@@ -246,7 +246,7 @@ func TestRestartRecordsPendingOnce(t *testing.T) {
 	if !slices.Contains(es[0].GetChange().GetChangedFields(), "task.work_state.branch") {
 		t.Fatalf("changed_fields = %v", es[0].GetChange().GetChangedFields())
 	}
-	if a := es[0].GetActor(); a.GetType() != kilnv1.ActorType_ACTOR_TYPE_AGENT || a.GetAgentId() != "" ||
+	if a := es[0].GetActor(); a.GetType() != underdrawv1.ActorType_ACTOR_TYPE_AGENT || a.GetAgentId() != "" ||
 		a.GetSession().GetHost() != "test-host" {
 		t.Fatalf("actor = %v", a)
 	}
@@ -262,7 +262,7 @@ func TestResumedContextHasWorkState(t *testing.T) {
 	recordBranch(t, svc, agent("a1"), t1)
 	clk.Advance(31 * time.Minute)
 	resp := next(t, svc, agent("a2"))
-	if !strings.Contains(resp.GetContext(), "- Branch: `kiln/t1`") {
+	if !strings.Contains(resp.GetContext(), "- Branch: `underdraw/t1`") {
 		t.Fatalf("context has no branch:\n%s", resp.GetContext())
 	}
 }
@@ -274,10 +274,10 @@ func TestWorkStateForcedSessionIsRecorded(t *testing.T) {
 	clk.Advance(31 * time.Minute)
 
 	other := service.WithCaller(context.Background(), service.Caller{
-		Actor: kilnv1.ActorType_ACTOR_TYPE_AGENT, AgentID: "a2", Host: "other-host", HostVersion: "2.0",
+		Actor: underdrawv1.ActorType_ACTOR_TYPE_AGENT, AgentID: "a2", Host: "other-host", HostVersion: "2.0",
 	})
 	rev := claim(t, svc, other, t1).GetTask().GetItem().GetRevision()
-	if _, err := updateWS(svc, other, t1, &kilnv1.WorkState{Branch: "kiln/t1-b"}, "branch"); err != nil {
+	if _, err := updateWS(svc, other, t1, &underdrawv1.WorkState{Branch: "underdraw/t1-b"}, "branch"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := svc.SetStatus(other, setStatus(t1, rev, inReview)); err != nil {
@@ -294,21 +294,21 @@ func TestWorkStateForcedSessionIsRecorded(t *testing.T) {
 func TestWorkStateUserUpdateKeepsAgent(t *testing.T) {
 	svc, clk, repo := newService(t, oneTask()...)
 	claim(t, svc, agent("a1"), t1)
-	if _, err := updateWS(svc, agent("a1"), t1, &kilnv1.WorkState{Branch: "kiln/t1"}, "branch"); err != nil {
+	if _, err := updateWS(svc, agent("a1"), t1, &underdrawv1.WorkState{Branch: "underdraw/t1"}, "branch"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := updateWS(svc, user, t1, &kilnv1.WorkState{Progress: "note"}, "progress"); err != nil {
+	if _, err := updateWS(svc, user, t1, &underdrawv1.WorkState{Progress: "note"}, "progress"); err != nil {
 		t.Fatal(err)
 	}
 	clk.Advance(31 * time.Minute)
-	if _, err := svc.GetItem(user, &kilnv1.GetItemRequest{Id: id(1)}); err != nil {
+	if _, err := svc.GetItem(user, &underdrawv1.GetItemRequest{Id: id(1)}); err != nil {
 		t.Fatal(err)
 	}
 	es := workStateEntries(t, repo, t1)
 	if len(es) != 1 {
 		t.Fatalf("%d WORK_STATE_UPDATED entries, want 1", len(es))
 	}
-	if a := es[0].GetActor(); a.GetType() != kilnv1.ActorType_ACTOR_TYPE_AGENT || a.GetAgentId() != "a1" {
+	if a := es[0].GetActor(); a.GetType() != underdrawv1.ActorType_ACTOR_TYPE_AGENT || a.GetAgentId() != "a1" {
 		t.Fatalf("actor = %v", a)
 	}
 	// session is set from a1's connection although branch was the only path.
@@ -321,18 +321,18 @@ func TestWorkStateUserUpdateKeepsAgent(t *testing.T) {
 func TestWorkStateUserOnlyUpdateIsUsers(t *testing.T) {
 	svc, clk, repo := newService(t, oneTask()...)
 	claim(t, svc, agent("a1"), t1)
-	if _, err := updateWS(svc, user, t1, &kilnv1.WorkState{Progress: "note"}, "progress"); err != nil {
+	if _, err := updateWS(svc, user, t1, &underdrawv1.WorkState{Progress: "note"}, "progress"); err != nil {
 		t.Fatal(err)
 	}
 	clk.Advance(31 * time.Minute)
-	if _, err := svc.GetItem(user, &kilnv1.GetItemRequest{Id: id(1)}); err != nil {
+	if _, err := svc.GetItem(user, &underdrawv1.GetItemRequest{Id: id(1)}); err != nil {
 		t.Fatal(err)
 	}
 	es := workStateEntries(t, repo, t1)
 	if len(es) != 1 {
 		t.Fatalf("%d WORK_STATE_UPDATED entries, want 1", len(es))
 	}
-	if a := es[0].GetActor(); a.GetType() != kilnv1.ActorType_ACTOR_TYPE_USER || a.GetAgentId() != "" || a.GetSession() != nil {
+	if a := es[0].GetActor(); a.GetType() != underdrawv1.ActorType_ACTOR_TYPE_USER || a.GetAgentId() != "" || a.GetSession() != nil {
 		t.Fatalf("actor = %v", a)
 	}
 }
@@ -368,8 +368,8 @@ func TestWorkStateOtherActorCommitIsRecordedSeparately(t *testing.T) {
 	svc, _, repo := newService(t, oneTask()...)
 	rev := claim(t, svc, agent("a1"), t1).GetTask().GetItem().GetRevision()
 	recordBranch(t, svc, agent("a1"), t1)
-	_, err := svc.UpdateItem(user, &kilnv1.UpdateItemRequest{
-		Item:         &kilnv1.Item{Id: id(t1), Title: "Renamed"},
+	_, err := svc.UpdateItem(user, &underdrawv1.UpdateItemRequest{
+		Item:         &underdrawv1.Item{Id: id(t1), Title: "Renamed"},
 		BaseRevision: rev, UpdateMask: mask("title"),
 	})
 	if err != nil {
@@ -380,19 +380,19 @@ func TestWorkStateOtherActorCommitIsRecordedSeparately(t *testing.T) {
 		t.Fatalf("%d history entries, want at least 2", len(es))
 	}
 	ws, upd := es[len(es)-2], es[len(es)-1]
-	if got := upd.GetChange().GetType(); got != kilnv1.ChangeType_CHANGE_TYPE_UPDATED {
+	if got := upd.GetChange().GetType(); got != underdrawv1.ChangeType_CHANGE_TYPE_UPDATED {
 		t.Fatalf("last entry type = %v, want UPDATED", got)
 	}
-	if a := upd.GetActor(); a.GetType() != kilnv1.ActorType_ACTOR_TYPE_USER {
+	if a := upd.GetActor(); a.GetType() != underdrawv1.ActorType_ACTOR_TYPE_USER {
 		t.Fatalf("last entry actor = %v, want the user", a)
 	}
 	if got := upd.GetChange().GetChangedFields(); !slices.Equal(got, []string{"title"}) {
 		t.Fatalf("user's changed_fields = %v, want [title]", got)
 	}
-	if got := ws.GetChange().GetType(); got != kilnv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED {
+	if got := ws.GetChange().GetType(); got != underdrawv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED {
 		t.Fatalf("entry before the user's: type = %v, want WORK_STATE_UPDATED", got)
 	}
-	if a := ws.GetActor(); a.GetType() != kilnv1.ActorType_ACTOR_TYPE_AGENT || a.GetAgentId() != "a1" {
+	if a := ws.GetActor(); a.GetType() != underdrawv1.ActorType_ACTOR_TYPE_AGENT || a.GetAgentId() != "a1" {
 		t.Fatalf("work-state actor = %v, want agent a1", a)
 	}
 	if got := ws.GetChange().GetRevision(); got != rev {
@@ -413,8 +413,8 @@ func TestWorkStateOtherAgentCommitIsRecordedSeparately(t *testing.T) {
 	svc, _, repo := newService(t, oneTask()...)
 	rev := claim(t, svc, agent("a1"), t1).GetTask().GetItem().GetRevision()
 	recordBranch(t, svc, agent("a1"), t1)
-	_, err := svc.UpdateItem(agent("a2"), &kilnv1.UpdateItemRequest{
-		Item:         &kilnv1.Item{Id: id(t1), Title: "Renamed"},
+	_, err := svc.UpdateItem(agent("a2"), &underdrawv1.UpdateItemRequest{
+		Item:         &underdrawv1.Item{Id: id(t1), Title: "Renamed"},
 		BaseRevision: rev, UpdateMask: mask("title"),
 	})
 	if err != nil {
@@ -425,7 +425,7 @@ func TestWorkStateOtherAgentCommitIsRecordedSeparately(t *testing.T) {
 	if a := upd.GetActor(); a.GetAgentId() != "a2" || !slices.Equal(upd.GetChange().GetChangedFields(), []string{"title"}) {
 		t.Fatalf("a2's entry: actor %v, changed_fields %v", a, upd.GetChange().GetChangedFields())
 	}
-	if a := ws.GetActor(); ws.GetChange().GetType() != kilnv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED || a.GetAgentId() != "a1" {
+	if a := ws.GetActor(); ws.GetChange().GetType() != underdrawv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED || a.GetAgentId() != "a1" {
 		t.Fatalf("entry before a2's: type %v, actor %v", ws.GetChange().GetType(), a)
 	}
 }

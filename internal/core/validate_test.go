@@ -4,44 +4,44 @@ import (
 	"errors"
 	"testing"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
 )
 
-func newFeature(f *kilnv1.Feature) *kilnv1.Item {
-	return &kilnv1.Item{Title: "Offline sync", Kind: &kilnv1.Item_Feature{Feature: f}}
+func newFeature(f *underdrawv1.Feature) *underdrawv1.Item {
+	return &underdrawv1.Item{Title: "Offline sync", Kind: &underdrawv1.Item_Feature{Feature: f}}
 }
 
-func newTask(tk *kilnv1.Task) *kilnv1.Item {
-	return &kilnv1.Item{Title: "Sync engine", Kind: &kilnv1.Item_Task{Task: tk}}
+func newTask(tk *underdrawv1.Task) *underdrawv1.Item {
+	return &underdrawv1.Item{Title: "Sync engine", Kind: &underdrawv1.Item_Task{Task: tk}}
 }
 
 func TestNormalizeNewItem(t *testing.T) {
-	agentFeature := newFeature(&kilnv1.Feature{ProjectId: "P"})
+	agentFeature := newFeature(&underdrawv1.Feature{ProjectId: "P"})
 	if err := core.NormalizeNewItem(agent, agentFeature); err != nil || !agentFeature.GetFeature().GetDraft() {
 		t.Errorf("agent feature: err=%v draft=%v, want nil, true", err, agentFeature.GetFeature().GetDraft())
 	}
-	userFeature := newFeature(&kilnv1.Feature{ProjectId: "P"})
+	userFeature := newFeature(&underdrawv1.Feature{ProjectId: "P"})
 	if err := core.NormalizeNewItem(user, userFeature); err != nil || userFeature.GetFeature().GetDraft() {
 		t.Errorf("user feature: err=%v draft=%v, want nil, false", err, userFeature.GetFeature().GetDraft())
 	}
-	newT := newTask(&kilnv1.Task{FeatureId: "F"})
+	newT := newTask(&underdrawv1.Task{FeatureId: "F"})
 	if err := core.NormalizeNewItem(agent, newT); err != nil || newT.GetTask().GetStatus() != READY {
 		t.Errorf("task: err=%v status=%v, want nil, READY", err, newT.GetTask().GetStatus())
 	}
 
-	withID := newTask(&kilnv1.Task{FeatureId: "F"})
+	withID := newTask(&underdrawv1.Task{FeatureId: "F"})
 	withID.Id = "01ARZ3NDEKTSV4RRFFQ69G5FAV"
-	blankTitle := newTask(&kilnv1.Task{FeatureId: "F"})
+	blankTitle := newTask(&underdrawv1.Task{FeatureId: "F"})
 	blankTitle.Title = "  "
-	for name, item := range map[string]*kilnv1.Item{
+	for name, item := range map[string]*underdrawv1.Item{
 		"id set":                  withID,
 		"blank title":             blankTitle,
 		"no kind":                 {Title: "x"},
-		"feature without project": newFeature(&kilnv1.Feature{}),
-		"task in progress":        newTask(&kilnv1.Task{FeatureId: "F", Status: IN_PROGRESS}),
-		"task with depends_on": newTask(&kilnv1.Task{FeatureId: "F",
-			DependsOn: []*kilnv1.Dependency{{ItemId: "X"}}}),
+		"feature without project": newFeature(&underdrawv1.Feature{}),
+		"task in progress":        newTask(&underdrawv1.Task{FeatureId: "F", Status: IN_PROGRESS}),
+		"task with depends_on": newTask(&underdrawv1.Task{FeatureId: "F",
+			DependsOn: []*underdrawv1.Dependency{{ItemId: "X"}}}),
 	} {
 		if err := core.NormalizeNewItem(user, item); !errors.Is(err, core.ErrInvalidArgument) {
 			t.Errorf("%s: got %v, want ErrInvalidArgument", name, err)
@@ -50,17 +50,17 @@ func TestNormalizeNewItem(t *testing.T) {
 }
 
 func TestCheckUpdate(t *testing.T) {
-	draftFeature := newFeature(&kilnv1.Feature{ProjectId: "P", Draft: true})
-	readyFeature := newFeature(&kilnv1.Feature{ProjectId: "P"})
-	tk := newTask(&kilnv1.Task{FeatureId: "F"})
-	renamed := newTask(&kilnv1.Task{FeatureId: "F"})
+	draftFeature := newFeature(&underdrawv1.Feature{ProjectId: "P", Draft: true})
+	readyFeature := newFeature(&underdrawv1.Feature{ProjectId: "P"})
+	tk := newTask(&underdrawv1.Task{FeatureId: "F"})
+	renamed := newTask(&underdrawv1.Task{FeatureId: "F"})
 	renamed.Title = "Sync engine v2"
-	untitled := newTask(&kilnv1.Task{FeatureId: "F"})
+	untitled := newTask(&underdrawv1.Task{FeatureId: "F"})
 	untitled.Title = ""
 
 	for name, c := range map[string]struct {
-		actor            kilnv1.ActorType
-		current, updated *kilnv1.Item
+		actor            underdrawv1.ActorType
+		current, updated *underdrawv1.Item
 		paths            []string
 		want             error
 	}{
@@ -71,8 +71,8 @@ func TestCheckUpdate(t *testing.T) {
 		"empty title":              {user, tk, untitled, []string{"title"}, core.ErrInvalidArgument},
 		"agent promotes draft":     {agent, draftFeature, readyFeature, []string{"feature.draft"}, core.ErrPermissionDenied},
 		"user promotes draft":      {user, draftFeature, readyFeature, []string{"feature.draft"}, nil},
-		"empty project_id":         {user, readyFeature, newFeature(&kilnv1.Feature{}), []string{"feature.project_id"}, core.ErrInvalidArgument},
-		"empty feature_id":         {user, tk, newTask(&kilnv1.Task{}), []string{"task.feature_id"}, core.ErrInvalidArgument},
+		"empty project_id":         {user, readyFeature, newFeature(&underdrawv1.Feature{}), []string{"feature.project_id"}, core.ErrInvalidArgument},
+		"empty feature_id":         {user, tk, newTask(&underdrawv1.Task{}), []string{"task.feature_id"}, core.ErrInvalidArgument},
 		"agent demotes to a draft": {agent, readyFeature, draftFeature, []string{"feature.draft"}, nil},
 	} {
 		err := core.CheckUpdate(c.actor, c.current, c.updated, c.paths)

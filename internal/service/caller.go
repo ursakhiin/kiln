@@ -3,14 +3,14 @@ package service
 import (
 	"context"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
 )
 
 // Caller is who is calling the service. The transport sets it with
 // WithCaller: Connect callers are the user, and each MCP session is an agent.
 // Request fields never set it.
 type Caller struct {
-	Actor       kilnv1.ActorType
+	Actor       underdrawv1.ActorType
 	AgentID     string // MCP session ID; empty for the user
 	Host        string // MCP clientInfo.name
 	HostVersion string // MCP clientInfo.version
@@ -30,11 +30,11 @@ func CallerFrom(ctx context.Context) (Caller, bool) {
 }
 
 // actor returns the history Actor for c.
-func (c Caller) actor() *kilnv1.Actor {
-	a := &kilnv1.Actor{Type: c.Actor}
-	if c.Actor == kilnv1.ActorType_ACTOR_TYPE_AGENT {
+func (c Caller) actor() *underdrawv1.Actor {
+	a := &underdrawv1.Actor{Type: c.Actor}
+	if c.Actor == underdrawv1.ActorType_ACTOR_TYPE_AGENT {
 		a.AgentId = c.AgentID
-		a.Session = &kilnv1.AgentSession{Host: c.Host, HostVersion: c.HostVersion}
+		a.Session = &underdrawv1.AgentSession{Host: c.Host, HostVersion: c.HostVersion}
 	}
 	return a
 }

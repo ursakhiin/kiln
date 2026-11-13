@@ -9,11 +9,11 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
-	"github.com/ursakhiin/kiln/internal/core"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
+	"github.com/ursakhiin/underdraw/internal/core"
 )
 
-// workStateFields are the WorkState fields an update mask may name. Kiln
+// workStateFields are the WorkState fields an update mask may name. Underdraw
 // sets update_time itself.
 var workStateFields = []protoreflect.Name{
 	"branch", "worktree_path", "base_commit", "head_commit", "pull_request_url",
@@ -28,7 +28,7 @@ const workStatePrefix = "task.work_state."
 // if no agent did), and the changed item field paths (e.g.
 // "task.work_state.branch").
 type pendingWorkState struct {
-	actor   kilnv1.ActorType
+	actor   underdrawv1.ActorType
 	agentID string
 	fields  map[string]bool
 }
@@ -37,7 +37,7 @@ type pendingWorkState struct {
 // task file without changing its revision or update_time and adds no history
 // entry: the changed fields are recorded in the task's next history entry,
 // or in their own entry when the claim ends.
-func (s *Service) UpdateWorkState(ctx context.Context, req *kilnv1.UpdateWorkStateRequest) (*kilnv1.UpdateWorkStateResponse, error) {
+func (s *Service) UpdateWorkState(ctx context.Context, req *underdrawv1.UpdateWorkStateRequest) (*underdrawv1.UpdateWorkStateResponse, error) {
 	caller, unlock, err := s.begin(ctx)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (s *Service) UpdateWorkState(ctx context.Context, req *kilnv1.UpdateWorkSta
 	if err != nil {
 		return nil, err
 	}
-	if caller.Actor != kilnv1.ActorType_ACTOR_TYPE_USER && !s.holds(caller, task.GetId()) {
+	if caller.Actor != underdrawv1.ActorType_ACTOR_TYPE_USER && !s.holds(caller, task.GetId()) {
 		return nil, fmt.Errorf("you don't hold task %s; claim the task with claim_task: %w",
 			task.GetId(), core.ErrFailedPrecondition)
 	}
@@ -57,13 +57,13 @@ func (s *Service) UpdateWorkState(ctx context.Context, req *kilnv1.UpdateWorkSta
 		return nil, err
 	}
 
-	ws := &kilnv1.WorkState{}
+	ws := &underdrawv1.WorkState{}
 	if cur := task.GetTask().GetWorkState(); cur != nil {
-		ws = proto.Clone(cur).(*kilnv1.WorkState)
+		ws = proto.Clone(cur).(*underdrawv1.WorkState)
 	}
-	src := proto.Clone(req.GetWorkState()).(*kilnv1.WorkState)
+	src := proto.Clone(req.GetWorkState()).(*underdrawv1.WorkState)
 	if src == nil {
-		src = &kilnv1.WorkState{}
+		src = &underdrawv1.WorkState{}
 	}
 	dst, from := ws.ProtoReflect(), src.ProtoReflect()
 	fds := dst.Descriptor().Fields()
@@ -75,9 +75,9 @@ func (s *Service) UpdateWorkState(ctx context.Context, req *kilnv1.UpdateWorkSta
 			dst.Clear(fd)
 		}
 	}
-	if caller.Actor == kilnv1.ActorType_ACTOR_TYPE_AGENT {
+	if caller.Actor == underdrawv1.ActorType_ACTOR_TYPE_AGENT {
 		if ws.Session == nil {
-			ws.Session = &kilnv1.AgentSession{}
+			ws.Session = &underdrawv1.AgentSession{}
 		}
 		ws.Session.Host, ws.Session.HostVersion = caller.Host, caller.HostVersion
 	}
@@ -86,7 +86,7 @@ func (s *Service) UpdateWorkState(ctx context.Context, req *kilnv1.UpdateWorkSta
 		return nil, err
 	}
 
-	updated := proto.Clone(task).(*kilnv1.Item)
+	updated := proto.Clone(task).(*underdrawv1.Item)
 	updated.GetTask().WorkState = ws
 	if err := s.store.PutItem(updated); err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (s *Service) UpdateWorkState(ctx context.Context, req *kilnv1.UpdateWorkSta
 		p = &pendingWorkState{actor: caller.Actor, fields: map[string]bool{}}
 		s.pending[updated.GetId()] = p
 	}
-	if caller.Actor == kilnv1.ActorType_ACTOR_TYPE_AGENT {
+	if caller.Actor == underdrawv1.ActorType_ACTOR_TYPE_AGENT {
 		p.actor, p.agentID = caller.Actor, caller.AgentID
 	}
 	for _, name := range names {
@@ -107,7 +107,7 @@ func (s *Service) UpdateWorkState(ctx context.Context, req *kilnv1.UpdateWorkSta
 	if !proto.Equal(ws.GetSession(), task.GetTask().GetWorkState().GetSession()) {
 		p.fields[workStatePrefix+"session"] = true
 	}
-	return &kilnv1.UpdateWorkStateResponse{Task: s.info(updated)}, nil
+	return &underdrawv1.UpdateWorkStateResponse{Task: s.info(updated)}, nil
 }
 
 // workStateMask checks an update mask's paths, which name top-level
@@ -150,8 +150,8 @@ func (s *Service) recordPendingWorkState(taskID string) {
 	if p == nil || task == nil {
 		return
 	}
-	actor := &kilnv1.Actor{Type: kilnv1.ActorType_ACTOR_TYPE_USER}
-	if p.actor == kilnv1.ActorType_ACTOR_TYPE_AGENT {
+	actor := &underdrawv1.Actor{Type: underdrawv1.ActorType_ACTOR_TYPE_USER}
+	if p.actor == underdrawv1.ActorType_ACTOR_TYPE_AGENT {
 		actor = agentWorkStateActor(task, p.agentID)
 	}
 	s.appendWorkStateEntry(task, actor, s.takePending(taskID))
@@ -159,22 +159,22 @@ func (s *Service) recordPendingWorkState(taskID string) {
 
 // agentWorkStateActor returns the agent agentID as the actor of a
 // WORK_STATE_UPDATED entry for task, with the work state's session.
-func agentWorkStateActor(task *kilnv1.Item, agentID string) *kilnv1.Actor {
-	actor := &kilnv1.Actor{Type: kilnv1.ActorType_ACTOR_TYPE_AGENT, AgentId: agentID}
+func agentWorkStateActor(task *underdrawv1.Item, agentID string) *underdrawv1.Actor {
+	actor := &underdrawv1.Actor{Type: underdrawv1.ActorType_ACTOR_TYPE_AGENT, AgentId: agentID}
 	if sess := task.GetTask().GetWorkState().GetSession(); sess != nil {
-		actor.Session = proto.Clone(sess).(*kilnv1.AgentSession)
+		actor.Session = proto.Clone(sess).(*underdrawv1.AgentSession)
 	}
 	return actor
 }
 
 // appendWorkStateEntry appends a WORK_STATE_UPDATED entry for task with the
 // given changed fields.
-func (s *Service) appendWorkStateEntry(task *kilnv1.Item, actor *kilnv1.Actor, fields []string) {
-	s.appendHistory(actor, task.GetId(), timestamppb.New(s.now()), &kilnv1.ChangeEvent{
-		Type:          kilnv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED,
+func (s *Service) appendWorkStateEntry(task *underdrawv1.Item, actor *underdrawv1.Actor, fields []string) {
+	s.appendHistory(actor, task.GetId(), timestamppb.New(s.now()), &underdrawv1.ChangeEvent{
+		Type:          underdrawv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED,
 		Revision:      task.GetRevision(),
 		ChangedFields: fields,
-		Snapshot:      proto.Clone(task).(*kilnv1.Item),
+		Snapshot:      proto.Clone(task).(*underdrawv1.Item),
 	})
 }
 
@@ -194,7 +194,7 @@ func (s *Service) reconcileWorkState() {
 			s.log.Error("can't check work state against history", "item", item.GetId(), "err", err)
 			continue
 		}
-		var recorded *kilnv1.WorkState
+		var recorded *underdrawv1.WorkState
 		for _, e := range slices.Backward(entries) {
 			if ch := e.GetChange(); ch != nil {
 				recorded = ch.GetSnapshot().GetTask().GetWorkState()
@@ -202,7 +202,7 @@ func (s *Service) reconcileWorkState() {
 			}
 		}
 		if recorded == nil {
-			recorded = &kilnv1.WorkState{}
+			recorded = &underdrawv1.WorkState{}
 		}
 		// update_time alone isn't a change worth recording.
 		fields := workStateDiff(recorded, ws)
@@ -215,7 +215,7 @@ func (s *Service) reconcileWorkState() {
 
 // workStateDiff returns the item field paths of the mask-settable WorkState
 // fields that differ between a and b, sorted.
-func workStateDiff(a, b *kilnv1.WorkState) []string {
+func workStateDiff(a, b *underdrawv1.WorkState) []string {
 	ra, rb := a.ProtoReflect(), b.ProtoReflect()
 	fds := ra.Descriptor().Fields()
 	var fields []string

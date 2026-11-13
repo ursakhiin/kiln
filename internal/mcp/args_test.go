@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
 )
 
 func TestNormalizeArgs(t *testing.T) {
-	md := (&kilnv1.UpdateItemRequest{}).ProtoReflect().Descriptor()
+	md := (&underdrawv1.UpdateItemRequest{}).ProtoReflect().Descriptor()
 	tests := []struct {
 		name, in, want string
 	}{
@@ -37,7 +37,7 @@ func TestNormalizeArgs(t *testing.T) {
 }
 
 func TestNormalizeArgsRejectsNonObject(t *testing.T) {
-	md := (&kilnv1.UpdateItemRequest{}).ProtoReflect().Descriptor()
+	md := (&underdrawv1.UpdateItemRequest{}).ProtoReflect().Descriptor()
 	if _, err := normalizeArgs(json.RawMessage(`[1]`), md); err == nil {
 		t.Fatal("want an error for a non-object")
 	}

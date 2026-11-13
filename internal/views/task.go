@@ -6,40 +6,40 @@ import (
 	"strings"
 	"time"
 
-	kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
+	underdrawv1 "github.com/ursakhiin/underdraw/gen/go/underdraw/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Dependency is one dependency of a task or feature, resolved by the caller.
 type Dependency struct {
 	ID         string
-	BlockUntil kilnv1.BlockUntil // UNSPECIFIED renders as "done"
-	Item       *kilnv1.ItemInfo  // nil if the item no longer exists
+	BlockUntil underdrawv1.BlockUntil // UNSPECIFIED renders as "done"
+	Item       *underdrawv1.ItemInfo  // nil if the item no longer exists
 }
 
 // TaskContext is everything RenderTaskContext needs to describe a task.
 type TaskContext struct {
-	Task                *kilnv1.ItemInfo
-	Feature             *kilnv1.ItemInfo   // nil if missing
-	Project             *kilnv1.Item       // nil if missing
-	Dependencies        []Dependency       // the task's
-	FeatureDependencies []Dependency       // the feature's
-	Siblings            []*kilnv1.ItemInfo // every task in the feature, rank order, including Task
+	Task                *underdrawv1.ItemInfo
+	Feature             *underdrawv1.ItemInfo   // nil if missing
+	Project             *underdrawv1.Item       // nil if missing
+	Dependencies        []Dependency            // the task's
+	FeatureDependencies []Dependency            // the feature's
+	Siblings            []*underdrawv1.ItemInfo // every task in the feature, rank order, including Task
 	Resumed             bool
 }
 
 // StatusName returns the lowercase display name of a status.
-func StatusName(s kilnv1.Status) string {
+func StatusName(s underdrawv1.Status) string {
 	switch s {
-	case kilnv1.Status_STATUS_DRAFT:
+	case underdrawv1.Status_STATUS_DRAFT:
 		return "draft"
-	case kilnv1.Status_STATUS_READY:
+	case underdrawv1.Status_STATUS_READY:
 		return "ready"
-	case kilnv1.Status_STATUS_IN_PROGRESS:
+	case underdrawv1.Status_STATUS_IN_PROGRESS:
 		return "in progress"
-	case kilnv1.Status_STATUS_IN_REVIEW:
+	case underdrawv1.Status_STATUS_IN_REVIEW:
 		return "in review"
-	case kilnv1.Status_STATUS_DONE:
+	case underdrawv1.Status_STATUS_DONE:
 		return "done"
 	}
 	return "unknown"
@@ -89,7 +89,7 @@ func RenderTaskContext(c TaskContext) string {
 	return strings.Join(sections, "\n\n") + "\n"
 }
 
-func description(it *kilnv1.Item) string {
+func description(it *underdrawv1.Item) string {
 	if d := strings.TrimSpace(it.GetDescription()); d != "" {
 		return d
 	}
@@ -103,7 +103,7 @@ func renderDependencies(deps []Dependency) string {
 	lines := make([]string, 0, len(deps))
 	for _, d := range deps {
 		until := "done"
-		if d.BlockUntil == kilnv1.BlockUntil_BLOCK_UNTIL_IN_REVIEW {
+		if d.BlockUntil == underdrawv1.BlockUntil_BLOCK_UNTIL_IN_REVIEW {
 			until = "in review"
 		}
 		if d.Item == nil {
@@ -125,15 +125,15 @@ func satisfied(d Dependency) bool {
 		return false
 	}
 	switch d.Item.GetStatus() {
-	case kilnv1.Status_STATUS_DONE:
+	case underdrawv1.Status_STATUS_DONE:
 		return true
-	case kilnv1.Status_STATUS_IN_REVIEW:
-		return d.BlockUntil == kilnv1.BlockUntil_BLOCK_UNTIL_IN_REVIEW
+	case underdrawv1.Status_STATUS_IN_REVIEW:
+		return d.BlockUntil == underdrawv1.BlockUntil_BLOCK_UNTIL_IN_REVIEW
 	}
 	return false
 }
 
-func renderWorkState(ws *kilnv1.WorkState) string {
+func renderWorkState(ws *underdrawv1.WorkState) string {
 	if ws == nil {
 		return "None recorded yet."
 	}
