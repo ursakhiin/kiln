@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 	"sync"
 	"time"
 
@@ -36,12 +37,14 @@ type Service struct {
 	claimTTL time.Duration
 	log      *slog.Logger
 
-	claims   map[string]*claim // by task ID
-	affinity map[string]string // agent ID → feature of the task it most recently claimed
+	claims   map[string]*claim            // by task ID
+	affinity map[string]string            // agent ID → feature of the task it most recently claimed
+	pending  map[string]*pendingWorkState // by task ID: work state not yet in history
 }
 
 // New loads every item from st. Files that can't be loaded are logged at
-// Warn and returned; the items that did load are kept.
+// Warn and returned; the items that did load are kept. Work state that the
+// previous daemon saved but didn't record in history is recorded now.
 func New(st *store.Store, opts Options) (*Service, []*store.FileError, error) {
 	s := &Service{
 		store:    st,
@@ -51,6 +54,7 @@ func New(st *store.Store, opts Options) (*Service, []*store.FileError, error) {
 		log:      opts.Logger,
 		claims:   map[string]*claim{},
 		affinity: map[string]string{},
+		pending:  map[string]*pendingWorkState{},
 	}
 	if s.now == nil {
 		s.now = time.Now
@@ -71,6 +75,7 @@ func New(st *store.Store, opts Options) (*Service, []*store.FileError, error) {
 	for _, it := range items {
 		s.items[it.GetId()] = it
 	}
+	s.reconcileWorkState()
 	return s, fileErrs, nil
 }
 
@@ -98,7 +103,8 @@ func (s *Service) begin(ctx context.Context) (Caller, func(), error) {
 // CHANGE_TYPE_CREATED, else incremented) and update_time (and create_time for
 // creation), writes the item file, caches the item, then appends one
 // ChangeEvent history entry whose snapshot is the written item. fields are
-// the changed field paths, empty for creation.
+// the changed field paths, empty for creation; a task's pending work-state
+// fields are appended to them, sorted, and stop being pending.
 //
 // If writing the item file fails, commit returns the error and the cache is
 // unchanged. If appending the history entry fails, the item file is already
@@ -117,7 +123,10 @@ func (s *Service) commit(caller Caller, item *kilnv1.Item, typ kilnv1.ChangeType
 		return err
 	}
 	s.items[item.GetId()] = item
-	s.appendHistory(caller, item.GetId(), now, &kilnv1.ChangeEvent{
+	if ws := s.takePending(item.GetId()); len(ws) > 0 {
+		fields = append(slices.Clip(fields), ws...)
+	}
+	s.appendHistory(caller.actor(), item.GetId(), now, &kilnv1.ChangeEvent{
 		Type:          typ,
 		Revision:      item.GetRevision(),
 		ChangedFields: fields,
@@ -128,12 +137,12 @@ func (s *Service) commit(caller Caller, item *kilnv1.Item, typ kilnv1.ChangeType
 
 // appendHistory appends one history entry. A failure is logged at Error, not
 // returned: callers use it after the change itself is saved.
-func (s *Service) appendHistory(caller Caller, itemID string, at *timestamppb.Timestamp, ev *kilnv1.ChangeEvent) {
+func (s *Service) appendHistory(actor *kilnv1.Actor, itemID string, at *timestamppb.Timestamp, ev *kilnv1.ChangeEvent) {
 	err := s.store.AppendHistory(&kilnv1.HistoryEntry{
 		Id:         core.NewID(),
 		ItemId:     itemID,
 		CreateTime: at,
-		Actor:      caller.actor(),
+		Actor:      actor,
 		Kind:       &kilnv1.HistoryEntry_Change{Change: ev},
 	})
 	if err != nil {

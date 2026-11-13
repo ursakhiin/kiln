@@ -186,7 +186,8 @@ func (s *Service) DeleteItem(ctx context.Context, req *kilnv1.DeleteItemRequest)
 		return nil, err
 	}
 	delete(s.items, item.GetId())
-	s.appendHistory(caller, item.GetId(), timestamppb.New(s.now()), &kilnv1.ChangeEvent{
+	delete(s.pending, item.GetId())
+	s.appendHistory(caller.actor(), item.GetId(), timestamppb.New(s.now()), &kilnv1.ChangeEvent{
 		Type:     kilnv1.ChangeType_CHANGE_TYPE_DELETED,
 		Revision: item.GetRevision() + 1,
 	})

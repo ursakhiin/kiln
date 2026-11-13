@@ -44,11 +44,13 @@ func (s *Service) startClaim(taskID, featureID, agentID string) {
 
 // endClaim is the single place a claim ends: on expiry, release, a status
 // change out of IN_PROGRESS, and so on. It does nothing if taskID is
-// unclaimed.
+// unclaimed. Work state not yet recorded in history gets its own entry, so
+// each agent session's work state is recorded once.
 func (s *Service) endClaim(taskID string) {
 	if _, ok := s.claims[taskID]; !ok {
 		return
 	}
+	s.recordPendingWorkState(taskID)
 	delete(s.claims, taskID)
 }
 
