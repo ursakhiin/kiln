@@ -1,14 +1,17 @@
 package daemon_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -123,4 +126,104 @@ func TestRun(t *testing.T) {
 	if _, err := os.Stat(runFile); !os.IsNotExist(err) {
 		t.Errorf("daemon.json still exists: %v", err)
 	}
+}
+
+// startDaemon runs a daemon on addr in a fresh repo until the test ends and
+// returns its bound address.
+func startDaemon(t *testing.T, addr string, logger *slog.Logger) string {
+	t.Helper()
+	ctx, cancel := context.WithCancel(context.Background())
+	cfg := daemon.Config{RepoRoot: t.TempDir(), Addr: addr, Version: "test", Logger: logger}
+	addrCh := make(chan string, 1)
+	done := make(chan error, 1)
+	go func() { done <- daemon.Run(ctx, cfg, func(a string) { addrCh <- a }) }()
+	t.Cleanup(func() {
+		cancel()
+		select {
+		case <-done:
+		case <-time.After(10 * time.Second):
+			t.Error("timed out waiting for shutdown")
+		}
+	})
+	select {
+	case a := <-addrCh:
+		return a
+	case err := <-done:
+		t.Fatalf("Run returned early: %v", err)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for ready")
+	}
+	return ""
+}
+
+// A DNS-rebound page reaches the loopback daemon under its own host name; the
+// daemon must refuse it on every endpoint, Connect included.
+func TestRejectsNonLocalHost(t *testing.T) {
+	addr := startDaemon(t, "127.0.0.1:0", slog.New(slog.DiscardHandler))
+	_, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// No keep-alives: an open connection would hold up the daemon's shutdown.
+	client := &http.Client{Transport: &http.Transport{DisableKeepAlives: true}}
+	for _, tc := range []struct {
+		host string
+		want int
+	}{
+		{"evil.example", http.StatusForbidden},
+		{"evil.example:" + port, http.StatusForbidden},
+		{"127.0.0.1:" + port, http.StatusOK},
+		{"localhost:" + port, http.StatusOK},
+		{"localhost", http.StatusOK},
+		{"[::1]:" + port, http.StatusOK},
+	} {
+		req, err := http.NewRequest(http.MethodPost, "http://"+addr+kilnv1connect.KilnServiceListItemsProcedure, strings.NewReader("{}"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Host = tc.host
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_ = resp.Body.Close()
+		if resp.StatusCode != tc.want {
+			t.Errorf("Host %q: status %d, want %d", tc.host, resp.StatusCode, tc.want)
+		}
+	}
+}
+
+func TestWarnsOnNonLoopbackAddr(t *testing.T) {
+	var buf syncBuffer
+	startDaemon(t, "0.0.0.0:0", slog.New(slog.NewTextHandler(&buf, nil)))
+	if got := buf.String(); !strings.Contains(got, "level=WARN") || !strings.Contains(got, "no authentication") {
+		t.Fatalf("log has no warning about the exposed API:\n%s", got)
+	}
+}
+
+func TestNoWarningOnLoopbackAddr(t *testing.T) {
+	var buf syncBuffer
+	startDaemon(t, "127.0.0.1:0", slog.New(slog.NewTextHandler(&buf, nil)))
+	if got := buf.String(); strings.Contains(got, "level=WARN") {
+		t.Fatalf("unexpected warning:\n%s", got)
+	}
+}
+
+// syncBuffer is a bytes.Buffer safe for concurrent use.
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.String()
 }

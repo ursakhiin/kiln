@@ -106,6 +106,10 @@ func Run(ctx context.Context, cfg Config, ready func(addr string)) error {
 		return err
 	}
 	bound := ln.Addr().String()
+	if !isLoopback(ln.Addr()) {
+		logger.Warn("listening beyond loopback: the Connect API acts as the user with no authentication and is exposed beyond this machine",
+			"addr", bound)
+	}
 
 	runFile := filepath.Join(runDir, "daemon.json")
 	info, err := json.Marshal(struct {
@@ -127,7 +131,7 @@ func Run(ctx context.Context, cfg Config, ready func(addr string)) error {
 	apiPath, apiHandler := api.NewHandler(svc)
 	mux.Handle(apiPath, apiHandler)
 
-	srv := &http.Server{Handler: mux}
+	srv := &http.Server{Handler: localHostOnly(mux)}
 	serveErr := make(chan error, 1)
 	go func() { serveErr <- srv.Serve(ln) }()
 	logger.Info("kiln serving", "repo", cfg.RepoRoot, "addr", bound)
@@ -148,6 +152,40 @@ func Run(ctx context.Context, cfg Config, ready func(addr string)) error {
 		_ = srv.Close()
 	}
 	return nil
+}
+
+// isLoopback reports whether addr is a TCP address on a loopback IP.
+func isLoopback(addr net.Addr) bool {
+	tcp, ok := addr.(*net.TCPAddr)
+	return ok && tcp.IP.IsLoopback()
+}
+
+// localHostOnly guards against DNS rebinding: on a connection to a loopback
+// address it rejects, with 403, any request whose Host isn't a localhost name.
+// A rebound page reaches the daemon under its own host name, and is
+// same-origin to itself, so cross-origin protection alone doesn't stop it.
+// It wraps the whole mux so every endpoint gets it.
+func localHostOnly(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if local, ok := r.Context().Value(http.LocalAddrContextKey).(net.Addr); ok && isLoopback(local) && !isLocalHost(r.Host) {
+			http.Error(w, "forbidden: Host must be localhost, 127.0.0.1 or [::1]", http.StatusForbidden)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+// isLocalHost reports whether host, a Host header with or without a port,
+// names this machine's loopback interface.
+func isLocalHost(host string) bool {
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	switch host {
+	case "localhost", "127.0.0.1", "::1", "[::1]":
+		return true
+	}
+	return false
 }
 
 func writeIfMissing(path, content string) error {
