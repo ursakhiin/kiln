@@ -19,6 +19,10 @@ var _ kilnv1mcp.KilnServiceToolHandler = (*service.Service)(nil)
 // sessionTimeout closes MCP sessions that have been idle this long.
 const sessionTimeout = 2 * time.Hour
 
+// noSessionText is the error message for a tool call from a session without
+// an ID, which can't be identified as an agent.
+const noSessionText = "Kiln needs a stateful MCP session (no session ID); connect over Kiln's streamable HTTP endpoint"
+
 // NewServer returns an MCP server exposing every generated KilnService tool,
 // backed by svc.
 func NewServer(svc *service.Service, version string) *sdk.Server {
@@ -54,7 +58,13 @@ func toolHandler(svc *service.Service, tool kilnv1mcp.KilnServiceTool) sdk.ToolH
 		if err != nil {
 			return errorResult(connectrpc.CodeInvalidArgument, err.Error()), nil
 		}
-		resp, err := tool.Call(service.WithCaller(ctx, callerOf(req)), svc, in)
+		caller := callerOf(req)
+		if caller.AgentID == "" {
+			// Without a session ID every such agent would share the ID ""
+			// and could release or overwrite each other's claims.
+			return errorResult(connectrpc.CodeFailedPrecondition, noSessionText), nil
+		}
+		resp, err := tool.Call(service.WithCaller(ctx, caller), svc, in)
 		if err != nil {
 			return serviceErrorResult(err), nil
 		}

@@ -253,3 +253,37 @@ func TestNextTaskTwoAgents(t *testing.T) {
 		t.Fatalf("IsError=%v, text: %s", res.IsError, got)
 	}
 }
+
+// A session without an ID can't be told apart from other such sessions, so
+// its tools refuse to run rather than act as a shared agent "".
+func TestEmptySessionIDRejected(t *testing.T) {
+	e := start(t)
+	ctx := context.Background()
+	serverT, clientT := sdk.NewInMemoryTransports()
+	ss, err := NewServer(e.svc, "test").Connect(ctx, serverT, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = ss.Close() })
+	client := sdk.NewClient(&sdk.Implementation{Name: "mem", Version: "1"}, nil)
+	cs, err := client.Connect(ctx, clientT, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = cs.Close() })
+	if ss.ID() != "" {
+		t.Skipf("in-memory session has ID %q", ss.ID())
+	}
+
+	res := call(t, cs, "create_item", map[string]any{"item": map[string]any{"title": "P", "project": map[string]any{}}})
+	if got := text(t, res); !res.IsError || !strings.HasPrefix(got, "failed_precondition: ") {
+		t.Fatalf("IsError=%v, text: %s", res.IsError, got)
+	}
+	items, _, err := e.st.ListItems()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != 0 {
+		t.Fatalf("%d items created, want 0", len(items))
+	}
+}
