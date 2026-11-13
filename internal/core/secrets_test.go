@@ -21,6 +21,16 @@ func TestCheckWorkState(t *testing.T) {
 	if err := core.CheckWorkState(ok); err != nil {
 		t.Errorf("valid work state: %v", err)
 	}
+	// Agents will name branches and worktrees after task IDs; "task-<ULID>"
+	// contains "sk-" followed by 26 alphanumerics.
+	named := &kilnv1.WorkState{
+		Branch:       "task-" + core.NewID(),
+		WorktreePath: ".claude/worktrees/task-" + core.NewID(),
+		Progress:     "continues task-" + strings.ToLower(core.NewID()),
+	}
+	if err := core.CheckWorkState(named); err != nil {
+		t.Errorf("work state naming a task ID: %v", err)
+	}
 }
 
 func TestCheckWorkStateRejectsSecrets(t *testing.T) {
@@ -32,6 +42,7 @@ func TestCheckWorkStateRejectsSecrets(t *testing.T) {
 	sk := "sk-" + strings.Repeat("a", 20)
 	key := "-----BEGIN RSA PRIVATE KEY-----"
 	jwt := "eyJ" + strings.Repeat("a", 10) + "." + strings.Repeat("b", 10) + "." + strings.Repeat("c", 10)
+	openaiProject := "sk-proj-" + strings.Repeat("aB3_x-", 8)
 
 	for _, row := range []struct {
 		name   string
@@ -46,6 +57,7 @@ func TestCheckWorkStateRejectsSecrets(t *testing.T) {
 		{"extra key", &kilnv1.WorkState{Extra: map[string]string{sk: "v"}}, sk},
 		{"transcript_path", &kilnv1.WorkState{Session: &kilnv1.AgentSession{TranscriptPath: key}}, key},
 		{"session_id", &kilnv1.WorkState{Session: &kilnv1.AgentSession{SessionId: jwt}}, jwt},
+		{"head_commit openai project key", &kilnv1.WorkState{HeadCommit: "key=" + openaiProject}, openaiProject},
 		{"credential ref token", &kilnv1.WorkState{CredentialRefs: []string{ghp}}, ghp},
 		{"credential ref not a name", &kilnv1.WorkState{CredentialRefs: []string{"my token"}}, "my token"},
 	} {

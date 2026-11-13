@@ -28,8 +28,11 @@ func CheckStatusChange(actor kilnv1.ActorType, item *kilnv1.Item, to kilnv1.Stat
 		if actor == kilnv1.ActorType_ACTOR_TYPE_USER {
 			return nil
 		}
-		if k.Task.GetStatus() == kilnv1.Status_STATUS_DONE {
+		switch k.Task.GetStatus() {
+		case kilnv1.Status_STATUS_DONE:
 			return fmt.Errorf("only the user can reopen a done task: %w", ErrPermissionDenied)
+		case kilnv1.Status_STATUS_DRAFT:
+			return fmt.Errorf("only the user can mark a draft task ready: %w", ErrPermissionDenied)
 		}
 		switch to {
 		case kilnv1.Status_STATUS_READY, kilnv1.Status_STATUS_IN_PROGRESS, kilnv1.Status_STATUS_IN_REVIEW:

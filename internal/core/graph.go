@@ -2,43 +2,83 @@ package core
 
 import kilnv1 "github.com/ursakhiin/kiln/gen/go/kiln/v1"
 
-// Edges returns the IDs an item waits on: its dependencies, plus its parent
-// feature for a task, because a task is blocked whenever its feature is.
-func Edges(item *kilnv1.Item) []string {
+// Graph gives cycle detection read access to items. The service implements it
+// over the index; core stays free of I/O.
+type Graph interface {
+	// Item returns the item with this ID, or nil if there is none.
+	Item(id string) *kilnv1.Item
+	// Tasks returns the IDs of a feature's tasks.
+	Tasks(featureID string) []string
+}
+
+// node is one point in an item's life: when it can start, or when it is
+// finished. One node per item can't express both "a task waits for its
+// feature to be unblocked" and "a feature isn't finished until its tasks
+// are" without every task looking like a cycle with its parent.
+type node struct {
+	id   string
+	done bool
+}
+
+// waitsOn returns the nodes n can't be reached before:
+//   - start(X) waits on done(D) for each dependency D of X
+//   - start(task) waits on start(its feature)
+//   - done(X) waits on start(X)
+//   - done(feature) waits on done(each of its tasks)
+func waitsOn(n node, g Graph) []node {
+	item := g.Item(n.id)
+	if item == nil {
+		return nil
+	}
+	var out []node
+	if n.done {
+		out = append(out, node{n.id, false})
+		if item.GetFeature() != nil {
+			for _, t := range g.Tasks(n.id) {
+				out = append(out, node{t, true})
+			}
+		}
+		return out
+	}
 	var deps []*kilnv1.Dependency
-	var ids []string
 	switch k := item.GetKind().(type) {
 	case *kilnv1.Item_Feature:
 		deps = k.Feature.GetDependsOn()
 	case *kilnv1.Item_Task:
 		deps = k.Task.GetDependsOn()
 		if f := k.Task.GetFeatureId(); f != "" {
-			ids = append(ids, f)
+			out = append(out, node{f, false})
 		}
 	}
 	for _, d := range deps {
-		ids = append(ids, d.GetItemId())
+		out = append(out, node{d.GetItemId(), true})
 	}
-	return ids
+	return out
 }
 
 // WouldCreateCycle reports whether making itemID depend on dependsOnID would
-// create a cycle: itemID is dependsOnID, or itemID is reachable from
-// dependsOnID by following edges.
-func WouldCreateCycle(itemID, dependsOnID string, edges func(id string) []string) bool {
-	visited := map[string]bool{}
-	stack := []string{dependsOnID}
+// create a deadlock. The new dependency makes start(itemID) wait on
+// done(dependsOnID), so it deadlocks if done(dependsOnID) already waits on
+// start(itemID), directly or through other items, their features or their
+// tasks.
+func WouldCreateCycle(itemID, dependsOnID string, g Graph) bool {
+	if itemID == dependsOnID {
+		return true
+	}
+	target := node{itemID, false}
+	visited := map[node]bool{}
+	stack := []node{{dependsOnID, true}}
 	for len(stack) > 0 {
-		id := stack[len(stack)-1]
+		n := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
-		if id == itemID {
+		if n == target {
 			return true
 		}
-		if visited[id] {
+		if visited[n] {
 			continue
 		}
-		visited[id] = true
-		stack = append(stack, edges(id)...)
+		visited[n] = true
+		stack = append(stack, waitsOn(n, g)...)
 	}
 	return false
 }

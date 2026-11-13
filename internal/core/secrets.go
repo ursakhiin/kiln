@@ -9,16 +9,18 @@ import (
 )
 
 // secretPatterns match common credential formats. Work state is committed to
-// git with its task, so values matching these are rejected.
+// git with its task, so values matching these are rejected. Prefixes start at
+// a word boundary, so names like "task-<ULID>" (which contains "sk-" plus 26
+// alphanumerics) aren't mistaken for keys.
 var secretPatterns = []*regexp.Regexp{
-	regexp.MustCompile(`AKIA[0-9A-Z]{16}`),                                              // AWS access key ID
-	regexp.MustCompile(`gh[pousr]_[A-Za-z0-9]{36,}`),                                    // GitHub token
-	regexp.MustCompile(`github_pat_[A-Za-z0-9_]{22,}`),                                  // GitHub fine-grained token
-	regexp.MustCompile(`xox[abprs]-[A-Za-z0-9-]{10,}`),                                  // Slack token
-	regexp.MustCompile(`sk-ant-[A-Za-z0-9_-]{20,}`),                                     // Anthropic API key
-	regexp.MustCompile(`sk-[A-Za-z0-9]{20,}`),                                           // OpenAI-style API key
-	regexp.MustCompile(`-----BEGIN [A-Z ]*PRIVATE KEY-----`),                            // PEM private key
-	regexp.MustCompile(`eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}`), // JWT
+	regexp.MustCompile(`\bAKIA[0-9A-Z]{16}`),                                              // AWS access key ID
+	regexp.MustCompile(`\bgh[pousr]_[A-Za-z0-9]{36,}`),                                    // GitHub token
+	regexp.MustCompile(`\bgithub_pat_[A-Za-z0-9_]{22,}`),                                  // GitHub fine-grained token
+	regexp.MustCompile(`\bxox[abprs]-[A-Za-z0-9-]{10,}`),                                  // Slack token
+	regexp.MustCompile(`\bsk-ant-[A-Za-z0-9_-]{20,}`),                                     // Anthropic API key
+	regexp.MustCompile(`\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}`),                               // OpenAI-style API key, including sk-proj-
+	regexp.MustCompile(`-----BEGIN [A-Z ]*PRIVATE KEY-----`),                              // PEM private key
+	regexp.MustCompile(`\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}`), // JWT
 }
 
 // credentialRef is what a credential_refs entry must look like: a name, such

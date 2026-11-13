@@ -16,13 +16,13 @@ func TestWouldCreateCycle(t *testing.T) {
 			DependsOn: []*kilnv1.Dependency{{ItemId: "T1"}}}}},
 		"F2": {Id: "F2", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{
 			DependsOn: []*kilnv1.Dependency{{ItemId: "T2"}}}}},
+		// F3 holds T3; F4 depends on F3.
+		"F3": {Id: "F3", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{}}},
+		"T3": {Id: "T3", Kind: &kilnv1.Item_Task{Task: &kilnv1.Task{FeatureId: "F3"}}},
+		"F4": {Id: "F4", Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{
+			DependsOn: []*kilnv1.Dependency{{ItemId: "F3"}}}}},
 	}
-	edges := func(id string) []string {
-		if it, ok := items[id]; ok {
-			return core.Edges(it)
-		}
-		return nil
-	}
+	g := mapGraph(items)
 	for _, c := range []struct {
 		from, to string
 		want     bool
@@ -33,8 +33,13 @@ func TestWouldCreateCycle(t *testing.T) {
 		{"T1", "F2", true},  // transitive: F2 → T2 → T1
 		{"F2", "T1", false}, // already implied, no cycle
 		{"T1", "MISSING", false},
+		{"T1", "F1", true},  // task depends on its own feature: F1 can't finish without T1
+		{"T2", "F2", true},  // T2 → F2 → T2 (F2 already depends on T2)
+		{"T3", "F4", true},  // T3 → F4 → F3, and F3 can't finish without T3
+		{"T3", "T1", false}, // ordinary cross-feature task dependency
+		{"F4", "F1", false}, // ordinary feature dependency
 	} {
-		if got := core.WouldCreateCycle(c.from, c.to, edges); got != c.want {
+		if got := core.WouldCreateCycle(c.from, c.to, g); got != c.want {
 			t.Errorf("WouldCreateCycle(%s, %s) = %v, want %v", c.from, c.to, got, c.want)
 		}
 	}
@@ -43,10 +48,27 @@ func TestWouldCreateCycle(t *testing.T) {
 // A cycle that already exists (e.g. from a hand edit) must not make the
 // search loop forever.
 func TestWouldCreateCycleTerminatesOnExistingCycle(t *testing.T) {
-	edges := func(id string) []string {
-		return map[string][]string{"A": {"B"}, "B": {"A"}}[id]
+	dependsOn := func(id string) *kilnv1.Item {
+		return &kilnv1.Item{Id: id, Kind: &kilnv1.Item_Feature{Feature: &kilnv1.Feature{
+			DependsOn: []*kilnv1.Dependency{{ItemId: map[string]string{"A": "B", "B": "A"}[id]}}}}}
 	}
-	if core.WouldCreateCycle("C", "A", edges) {
+	g := mapGraph{"A": dependsOn("A"), "B": dependsOn("B")}
+	if core.WouldCreateCycle("C", "A", g) {
 		t.Error("C → A reported as a cycle")
 	}
+}
+
+// mapGraph is a core.Graph over an in-memory set of items.
+type mapGraph map[string]*kilnv1.Item
+
+func (g mapGraph) Item(id string) *kilnv1.Item { return g[id] }
+
+func (g mapGraph) Tasks(featureID string) []string {
+	var ids []string
+	for id, it := range g {
+		if it.GetTask() != nil && it.GetTask().GetFeatureId() == featureID {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }

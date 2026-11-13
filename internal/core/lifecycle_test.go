@@ -53,6 +53,9 @@ func TestCheckStatusChange(t *testing.T) {
 		{agent, feature(), IN_REVIEW, core.ErrPermissionDenied},
 		{user, project(), READY, core.ErrFailedPrecondition},
 		{external, task(READY), IN_PROGRESS, core.ErrPermissionDenied},
+		{agent, task(DRAFT), READY, core.ErrPermissionDenied},
+		{agent, task(DRAFT), IN_PROGRESS, core.ErrPermissionDenied},
+		{user, task(DRAFT), READY, nil},
 	} {
 		err := core.CheckStatusChange(c.actor, c.item, c.to)
 		if c.want == nil && err != nil || c.want != nil && !errors.Is(err, c.want) {
