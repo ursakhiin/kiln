@@ -21,11 +21,6 @@ func (s *Service) info(item *kilnv1.Item) *kilnv1.ItemInfo {
 	}
 }
 
-// claimOf returns the claim on item, if any. Claims don't exist yet.
-func (s *Service) claimOf(*kilnv1.Item) *kilnv1.Claim {
-	return nil
-}
-
 // effectiveStatus is a task's status, a feature's status derived from its
 // tasks, or STATUS_UNSPECIFIED for a project.
 func (s *Service) effectiveStatus(item *kilnv1.Item) kilnv1.Status {

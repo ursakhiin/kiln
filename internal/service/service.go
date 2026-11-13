@@ -35,6 +35,9 @@ type Service struct {
 	now      func() time.Time
 	claimTTL time.Duration
 	log      *slog.Logger
+
+	claims   map[string]*claim // by task ID
+	affinity map[string]string // agent ID → feature of the task it most recently claimed
 }
 
 // New loads every item from st. Files that can't be loaded are logged at
@@ -46,6 +49,8 @@ func New(st *store.Store, opts Options) (*Service, []*store.FileError, error) {
 		now:      opts.Now,
 		claimTTL: opts.ClaimTTL,
 		log:      opts.Logger,
+		claims:   map[string]*claim{},
+		affinity: map[string]string{},
 	}
 	if s.now == nil {
 		s.now = time.Now
@@ -69,8 +74,9 @@ func New(st *store.Store, opts Options) (*Service, []*store.FileError, error) {
 	return s, fileErrs, nil
 }
 
-// begin starts every RPC method: it locks the service and reads the caller.
-// On success the method must call the returned unlock function, typically
+// begin starts every RPC method: it locks the service, reads the caller,
+// ends expired claims and, if the caller is an agent, renews its claims. On
+// success the method must call the returned unlock function, typically
 // with defer; on error the service is already unlocked.
 func (s *Service) begin(ctx context.Context) (Caller, func(), error) {
 	s.mu.Lock()
@@ -78,6 +84,11 @@ func (s *Service) begin(ctx context.Context) (Caller, func(), error) {
 	if !ok {
 		s.mu.Unlock()
 		return Caller{}, nil, fmt.Errorf("no caller: %w", core.ErrPermissionDenied)
+	}
+	now := s.now()
+	s.expireClaims(now)
+	if c.Actor == kilnv1.ActorType_ACTOR_TYPE_AGENT {
+		s.renewClaims(c.AgentID, now)
 	}
 	return c, s.mu.Unlock, nil
 }

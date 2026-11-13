@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/protobuf/proto"
 
@@ -32,8 +33,14 @@ func (s *Service) SetStatus(ctx context.Context, req *kilnv1.SetStatusRequest) (
 
 // setStatusLocked checks and applies a status change to the cached item,
 // with s.mu held. Setting the status an item already has writes nothing.
+//
+// For tasks it also applies the claim rules (checkClaimRules), and a change
+// that leaves a claimed task in any status but IN_PROGRESS ends its claim.
 func (s *Service) setStatusLocked(caller Caller, item *kilnv1.Item, to kilnv1.Status) error {
 	if err := core.CheckStatusChange(caller.Actor, item, to); err != nil {
+		return err
+	}
+	if err := s.checkClaimRules(caller, item, to); err != nil {
 		return err
 	}
 	updated := proto.Clone(item).(*kilnv1.Item)
@@ -50,5 +57,27 @@ func (s *Service) setStatusLocked(caller Caller, item *kilnv1.Item, to kilnv1.St
 		}
 		k.Task.Status, field = to, "task.status"
 	}
-	return s.commit(caller, updated, kilnv1.ChangeType_CHANGE_TYPE_STATUS_CHANGED, []string{field})
+	if err := s.commit(caller, updated, kilnv1.ChangeType_CHANGE_TYPE_STATUS_CHANGED, []string{field}); err != nil {
+		return err
+	}
+	if updated.GetTask() != nil && to != kilnv1.Status_STATUS_IN_PROGRESS {
+		s.endClaim(updated.GetId())
+	}
+	return nil
+}
+
+// checkClaimRules applies the claim rules to an agent's status change of a
+// task: it can't change a task another agent has claimed, and must hold the
+// claim to set IN_PROGRESS. The user isn't bound by claims.
+func (s *Service) checkClaimRules(caller Caller, item *kilnv1.Item, to kilnv1.Status) error {
+	if caller.Actor != kilnv1.ActorType_ACTOR_TYPE_AGENT || item.GetTask() == nil || s.holds(caller, item.GetId()) {
+		return nil
+	}
+	if c, ok := s.claims[item.GetId()]; ok {
+		return fmt.Errorf("task %s is claimed by agent %s: %w", item.GetId(), c.agentID, core.ErrFailedPrecondition)
+	}
+	if to == kilnv1.Status_STATUS_IN_PROGRESS {
+		return fmt.Errorf("you don't hold task %s; claim the task with claim_task: %w", item.GetId(), core.ErrFailedPrecondition)
+	}
+	return nil
 }

@@ -170,6 +170,9 @@ func (s *Service) DeleteItem(ctx context.Context, req *kilnv1.DeleteItemRequest)
 	if err := s.checkBase(item, req.GetBaseRevision()); err != nil {
 		return nil, err
 	}
+	if c, ok := s.claims[item.GetId()]; ok {
+		return nil, fmt.Errorf("task %s is claimed by agent %s; release it first: %w", item.GetId(), c.agentID, core.ErrFailedPrecondition)
+	}
 	for _, other := range s.items {
 		if parentOf(other) == item.GetId() {
 			return nil, fmt.Errorf("item %s still has children (%s): %w", item.GetId(), other.GetId(), core.ErrFailedPrecondition)
