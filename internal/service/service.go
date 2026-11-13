@@ -88,6 +88,11 @@ func (s *Service) begin(ctx context.Context) (Caller, func(), error) {
 // creation), writes the item file, caches the item, then appends one
 // ChangeEvent history entry whose snapshot is the written item. fields are
 // the changed field paths, empty for creation.
+//
+// If writing the item file fails, commit returns the error and the cache is
+// unchanged. If appending the history entry fails, the item file is already
+// saved and is the source of truth, so commit logs the failure at Error and
+// returns nil: reporting an error would tell the caller the change was lost.
 func (s *Service) commit(caller Caller, item *kilnv1.Item, typ kilnv1.ChangeType, fields []string) error {
 	now := timestamppb.New(s.now())
 	if typ == kilnv1.ChangeType_CHANGE_TYPE_CREATED {
@@ -101,18 +106,29 @@ func (s *Service) commit(caller Caller, item *kilnv1.Item, typ kilnv1.ChangeType
 		return err
 	}
 	s.items[item.GetId()] = item
-	return s.store.AppendHistory(&kilnv1.HistoryEntry{
-		Id:         core.NewID(),
-		ItemId:     item.GetId(),
-		CreateTime: now,
-		Actor:      caller.actor(),
-		Kind: &kilnv1.HistoryEntry_Change{Change: &kilnv1.ChangeEvent{
-			Type:          typ,
-			Revision:      item.GetRevision(),
-			ChangedFields: fields,
-			Snapshot:      proto.Clone(item).(*kilnv1.Item),
-		}},
+	s.appendHistory(caller, item.GetId(), now, &kilnv1.ChangeEvent{
+		Type:          typ,
+		Revision:      item.GetRevision(),
+		ChangedFields: fields,
+		Snapshot:      proto.Clone(item).(*kilnv1.Item),
 	})
+	return nil
+}
+
+// appendHistory appends one history entry. A failure is logged at Error, not
+// returned: callers use it after the change itself is saved.
+func (s *Service) appendHistory(caller Caller, itemID string, at *timestamppb.Timestamp, ev *kilnv1.ChangeEvent) {
+	err := s.store.AppendHistory(&kilnv1.HistoryEntry{
+		Id:         core.NewID(),
+		ItemId:     itemID,
+		CreateTime: at,
+		Actor:      caller.actor(),
+		Kind:       &kilnv1.HistoryEntry_Change{Change: ev},
+	})
+	if err != nil {
+		s.log.Error("item saved but history entry not written",
+			"item", itemID, "revision", ev.GetRevision(), "err", err)
+	}
 }
 
 // checkBase returns a *ConflictError if a write based on revision base would

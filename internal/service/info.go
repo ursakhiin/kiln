@@ -56,8 +56,9 @@ func (s *Service) statusOf(id string) (kilnv1.Status, bool) {
 }
 
 // isBlocked reports whether any dependency still blocks item. A task is also
-// blocked while its feature is: it waits for its feature to start. Projects
-// are never blocked.
+// blocked while its feature is, or when its feature is missing: it waits for
+// its feature to start, and a missing item blocks, as in core.IsBlocked.
+// Projects are never blocked.
 func (s *Service) isBlocked(item *kilnv1.Item) bool {
 	switch k := item.GetKind().(type) {
 	case *kilnv1.Item_Feature:
@@ -67,7 +68,7 @@ func (s *Service) isBlocked(item *kilnv1.Item) bool {
 			return true
 		}
 		f, ok := s.items[k.Task.GetFeatureId()]
-		return ok && f.GetFeature() != nil && s.isBlocked(f)
+		return !ok || f.GetFeature() == nil || s.isBlocked(f)
 	default:
 		return false
 	}

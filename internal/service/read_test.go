@@ -112,6 +112,13 @@ func TestItemInfoDerived(t *testing.T) {
 	}
 }
 
+func TestTaskWithMissingFeatureIsBlocked(t *testing.T) {
+	svc, _, _ := newService(t, proj(1), task(3, 2, "m", kilnv1.Status_STATUS_READY))
+	if info := getInfo(t, svc, 3); !info.Blocked {
+		t.Error("a task whose feature is missing should be blocked")
+	}
+}
+
 func TestListItemsOrderAndFilters(t *testing.T) {
 	const (
 		p1, p2     = 1, 2
