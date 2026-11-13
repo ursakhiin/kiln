@@ -1,0 +1,19 @@
+{
+  "id": "01M7B9GWA1DP9TQJD165PAAB4W",
+  "revision": "2",
+  "title": "Edit dependencies from the graph",
+  "description": "Add a dependency by connecting two nodes (choose done or in review) and remove one by deleting its edge, via AddDependency/RemoveDependency with the blocked item's revision. Show cycle rejections (FAILED_PRECONDITION) clearly and leave the graph unchanged.",
+  "create_time": "2026-11-13T20:27:57.121146602Z",
+  "update_time": "2026-11-13T20:28:27.406449305Z",
+  "task": {
+    "feature_id": "01M7B9FEHYM9G1AWJ53W13VX9X",
+    "status": "STATUS_READY",
+    "rank": "r",
+    "depends_on": [
+      {
+        "item_id": "01M7B9GW9B0C6ZABD7773YTFG3",
+        "block_until": "BLOCK_UNTIL_DONE"
+      }
+    ]
+  }
+}

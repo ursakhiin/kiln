@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9GWC7TJJN72HG1DEH5YJ4",
+  "item_id": "01M7B9GWC0ANFXQPBV93N2AC84",
+  "create_time": "2026-11-13T20:27:57.184924354Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9GWC0ANFXQPBV93N2AC84",
+      "revision": "1",
+      "title": "MCP resource subscriptions and update notifications",
+      "description": "Expose items as MCP resources (e.g. `kiln://items/<id>`, returning the markdown view) and send `notifications/resources/updated` to sessions that subscribed when an item changes. Check the go-sdk's resource and subscription API first.\n\nOptional by spec: the revision check stays the guarantee. Also update `internal/mcp/doc.go`, which already describes this.",
+      "create_time": "2026-11-13T20:27:57.184924354Z",
+      "update_time": "2026-11-13T20:27:57.184924354Z",
+      "task": {
+        "feature_id": "01M7B9FEJMXRESWRBB4C01M2VP",
+        "status": "STATUS_READY",
+        "rank": "w"
+      }
+    }
+  }
+}

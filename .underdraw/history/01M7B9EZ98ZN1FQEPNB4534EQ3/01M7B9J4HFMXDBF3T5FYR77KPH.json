@@ -1,0 +1,17 @@
+{
+  "id": "01M7B9J4HFMXDBF3T5FYR77KPH",
+  "item_id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+  "create_time": "2026-11-13T20:28:38.319347616Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "note": {
+    "body": "Seeded the remaining work from Requirements.md's build order (steps 3–6) plus the work deferred from step 2: file watching, the SQLite index and review follow-ups.\n\n- **Feature order** follows the build order. File watching comes right after the CLI, as decided when step 2 was planned. The SQLite index and the follow-ups come last.\n- **Dependencies** are added only where a task needs another task's code. All of them use `BLOCK_UNTIL_DONE`, because agents work on branches: in review means the code isn't merged yet, so a dependent agent wouldn't have it.\n- **Features are drafts**, because an agent created them. The user promotes the ones to start on.",
+    "item_revision": "1"
+  }
+}

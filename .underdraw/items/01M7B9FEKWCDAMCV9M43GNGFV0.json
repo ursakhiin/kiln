@@ -1,0 +1,13 @@
+{
+  "id": "01M7B9FEKWCDAMCV9M43GNGFV0",
+  "revision": "1",
+  "title": "Step 2 follow-ups",
+  "description": "Findings deferred from the step 2 reviews (service layer, MCP server, Connect API, daemon) that are worth fixing but didn't block the merge. Each task names the behavior a user or agent would hit.",
+  "create_time": "2026-11-13T20:27:10.332646349Z",
+  "update_time": "2026-11-13T20:27:10.332646349Z",
+  "feature": {
+    "project_id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+    "draft": true,
+    "rank": "zr"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "01M7B9G572017C0QD1FAZCYKAF",
+  "revision": "2",
+  "title": "Keep claims and work state consistent across reloads",
+  "description": "When a reload removes a claimed task, or changes it so it's no longer claimable (e.g. moved out of IN_PROGRESS by a branch switch), end the claim through `endClaim` so pending work state is still recorded once.\n\nAttribute work state that changed only through a hand edit or `git pull` to `ACTOR_TYPE_EXTERNAL`, not to agent `\"\"` (today startup reconciliation records it as an agent with no ID).",
+  "create_time": "2026-11-13T20:27:33.474602817Z",
+  "update_time": "2026-11-13T20:28:27.289055613Z",
+  "task": {
+    "feature_id": "01M7B9FEGMY1DR2DYXJ0BCSV5N",
+    "status": "STATUS_READY",
+    "rank": "r",
+    "depends_on": [
+      {
+        "item_id": "01M7B9G56D52Z89A4B609WSDEJ",
+        "block_until": "BLOCK_UNTIL_DONE"
+      }
+    ]
+  }
+}

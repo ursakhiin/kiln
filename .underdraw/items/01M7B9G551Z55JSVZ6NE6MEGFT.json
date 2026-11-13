@@ -1,0 +1,19 @@
+{
+  "id": "01M7B9G551Z55JSVZ6NE6MEGFT",
+  "revision": "3",
+  "title": "User-only actions: ready, status, move, rm, deps",
+  "description": "The user-only actions that currently need `buf curl`.\n\n- `underdraw ready <feature-id>`: promote a draft (UpdateItem, mask `feature.draft`).\n- `underdraw status <id> <status>`: set a task's status (including `done`) or a feature's override; `--clear` removes the override.\n- `underdraw move <id> --before <id> | --after <id>`: rerank.\n- `underdraw rm <id>`: delete.\n- `underdraw dep add <id> <blocker> [--until review]` and `underdraw dep rm <id> <blocker>`.\n- `underdraw release <task-id>`: free a stuck claim.\n\nEach command fetches the current revision itself.",
+  "create_time": "2026-11-13T20:27:33.409215396Z",
+  "update_time": "2026-11-13T20:35:16.397983809Z",
+  "task": {
+    "feature_id": "01M7B9FEFMQHM60YYTGY6TNTR0",
+    "status": "STATUS_READY",
+    "rank": "y",
+    "depends_on": [
+      {
+        "item_id": "01M7B9G52R5PJ5GQA6RT49ZRMN",
+        "block_until": "BLOCK_UNTIL_DONE"
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9GW89P3R1V9QC8BH23YA1",
+  "item_id": "01M7B9GW836P56G64ZN2J11V0Z",
+  "create_time": "2026-11-13T20:27:57.059791497Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9GW836P56G64ZN2J11V0Z",
+      "revision": "1",
+      "title": "Drag-and-drop ranking",
+      "description": "Reorder features (across all projects) and tasks (within their feature) by drag-and-drop, calling MoveItem with `before_id`/`after_id` and the item's revision.\n\nOn ABORTED (revision conflict), refresh from the RevisionConflict detail and let the user retry; on FAILED_PRECONDITION (tied ranks) show the message.",
+      "create_time": "2026-11-13T20:27:57.059791497Z",
+      "update_time": "2026-11-13T20:27:57.059791497Z",
+      "task": {
+        "feature_id": "01M7B9FEH91NWK7XR50ADNVTFB",
+        "status": "STATUS_READY",
+        "rank": "y"
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "01M7B9EZ9QMCA6R4YG4MN20M2R",
+  "item_id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+  "create_time": "2026-11-13T20:26:54.632016886Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+      "revision": "1",
+      "title": "Kiln",
+      "description": "Kiln itself: an agentic collaboration tool where one user and several AI agents plan and track Projects → Features → Tasks, stored as committed text files under `.kiln/`. `Requirements.md` is the authoritative spec.\n\nAlready built (steps 1–2 of the build order): the data model and `.kiln/` file store, the service layer, the MCP server, the Connect API and `kiln serve`.",
+      "create_time": "2026-11-13T20:26:54.632016886Z",
+      "update_time": "2026-11-13T20:26:54.632016886Z",
+      "project": {}
+    }
+  }
+}

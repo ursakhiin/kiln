@@ -1,0 +1,9 @@
+{
+  "id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+  "revision": "2",
+  "title": "Underdraw",
+  "description": "Underdraw itself: an agentic collaboration tool where one user and several AI agents plan and track Projects → Features → Tasks, stored as committed text files under `.underdraw/`. `Requirements.md` is the authoritative spec.\n\nAlready built (steps 1–2 of the build order): the data model and `.underdraw/` file store, the service layer, the MCP server, the Connect API and `underdraw serve`.",
+  "create_time": "2026-11-13T20:26:54.632016886Z",
+  "update_time": "2026-11-13T20:35:16.176529183Z",
+  "project": {}
+}

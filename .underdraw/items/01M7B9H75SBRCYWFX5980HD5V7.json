@@ -1,0 +1,13 @@
+{
+  "id": "01M7B9H75SBRCYWFX5980HD5V7",
+  "revision": "1",
+  "title": "Tidy-ups: docs, schemas, tests",
+  "description": "- Stale package docs: `internal/daemon/doc.go` (auto-start) and `internal/mcp/doc.go` (resource subscriptions) describe features that don't exist yet; update as they land.\n- MCP schema noise: the `item` description includes Item's storage-path comment; real oneofs' own comments aren't included; `/* */` comments keep their ` * ` prefixes.\n- Duplicated feature/task `depends_on` switches (core/graph.go, service/deps.go).\n- Test gaps: project `include_children`, skipped bad history files, reconciliation of a task with no ChangeEvent, MCP `permission_denied`, Connect user-only RPCs, Warn logging of bad item files.",
+  "create_time": "2026-11-13T20:28:08.249193427Z",
+  "update_time": "2026-11-13T20:28:08.249193427Z",
+  "task": {
+    "feature_id": "01M7B9FEKWCDAMCV9M43GNGFV0",
+    "status": "STATUS_READY",
+    "rank": "y"
+  }
+}

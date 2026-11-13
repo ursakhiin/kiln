@@ -1,0 +1,13 @@
+{
+  "id": "01M7B9FEJMXRESWRBB4C01M2VP",
+  "revision": "1",
+  "title": "History extras: version diff/restore and MCP push notifications",
+  "description": "Step 6 of the build order.\n\n- Versions: diff any two snapshots of an item, and restore an earlier version as a new revision (RestoreVersion, user only, `CHANGE_TYPE_RESTORED`).\n- History in the GUI: the change log and decision notes per item.\n- MCP resource-update notifications for clients that subscribe (Requirements.md, Agent Interaction → Staleness). Optional; the revision check stays the guarantee.",
+  "create_time": "2026-11-13T20:27:10.292205619Z",
+  "update_time": "2026-11-13T20:27:10.292205619Z",
+  "feature": {
+    "project_id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+    "draft": true,
+    "rank": "z"
+  }
+}

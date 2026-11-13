@@ -1,0 +1,43 @@
+{
+  "id": "01M7B9HXYX1EWF6FJD7N1GHYMK",
+  "item_id": "01M7B9GW7FF4BPZB9FJY10808W",
+  "create_time": "2026-11-13T20:28:31.575570501Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_DEPENDENCY_ADDED",
+    "revision": "3",
+    "changed_fields": [
+      "task.depends_on"
+    ],
+    "snapshot": {
+      "id": "01M7B9GW7FF4BPZB9FJY10808W",
+      "revision": "3",
+      "title": "List view",
+      "description": "The main GUI screen, using the generated `connect-es` client in `web/src/gen`.\n\n- Projects, each with its features in rank order, each expandable to its tasks in rank order.\n- Per item: title, effective status, blocked indicator, claim (agent and expiry), draft badge.\n- Live updates through WatchItems.\n- Item detail panel: description (markdown), dependencies, work state (branch, PR, progress), revision.",
+      "create_time": "2026-11-13T20:27:57.039260018Z",
+      "update_time": "2026-11-13T20:28:31.575570501Z",
+      "task": {
+        "feature_id": "01M7B9FEH91NWK7XR50ADNVTFB",
+        "status": "STATUS_READY",
+        "rank": "w",
+        "depends_on": [
+          {
+            "item_id": "01M7B9GW5XTH15M1B328K5M0YH",
+            "block_until": "BLOCK_UNTIL_DONE"
+          },
+          {
+            "item_id": "01M7B9GW6VTK9Q9SPZXC0F5404",
+            "block_until": "BLOCK_UNTIL_DONE"
+          }
+        ]
+      }
+    }
+  }
+}

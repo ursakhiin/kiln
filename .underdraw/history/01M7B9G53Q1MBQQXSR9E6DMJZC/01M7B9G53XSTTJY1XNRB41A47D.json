@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9G53XSTTJY1XNRB41A47D",
+  "item_id": "01M7B9G53Q1MBQQXSR9E6DMJZC",
+  "create_time": "2026-11-13T20:27:33.367468613Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9G53Q1MBQQXSR9E6DMJZC",
+      "revision": "1",
+      "title": "kiln list and kiln show",
+      "description": "Read commands.\n\n- `kiln list`: features in rank order with their tasks, showing ID, title, effective status, blocked and claim. Filters: `--kind`, `--project`, `--feature`, `--status`. `--json` prints the protojson response for scripting.\n- `kiln show <id>`: one item with its description, dependencies, work state and revision.\n- `kiln history <id>` with `--children` and `--notes`.\n\nAdd commands with `cobra-cli add <name> -a \"Peter Rauhut\" -l none` from `cmd/kiln/`.",
+      "create_time": "2026-11-13T20:27:33.367468613Z",
+      "update_time": "2026-11-13T20:27:33.367468613Z",
+      "task": {
+        "feature_id": "01M7B9FEFMQHM60YYTGY6TNTR0",
+        "status": "STATUS_READY",
+        "rank": "r"
+      }
+    }
+  }
+}

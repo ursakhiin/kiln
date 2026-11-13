@@ -1,0 +1,13 @@
+{
+  "id": "01M7B9GW6VTK9Q9SPZXC0F5404",
+  "revision": "2",
+  "title": "Serve the embedded GUI from the daemon",
+  "description": "Mount `internal/webui` (the Vite build embedded from `internal/webui/dist`) at `/` in `internal/daemon`, behind the existing localhost Host check. `underdraw serve` prints the GUI URL. Unknown paths fall back to `index.html` for client-side routing.\n\nIn development, `cd web && npm run dev` proxies Connect calls to the daemon (configure the Vite proxy).",
+  "create_time": "2026-11-13T20:27:57.019541628Z",
+  "update_time": "2026-11-13T20:35:16.264236519Z",
+  "task": {
+    "feature_id": "01M7B9FEH91NWK7XR50ADNVTFB",
+    "status": "STATUS_READY",
+    "rank": "r"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9GWAWM6FWQRGVHNGTGDPY",
+  "item_id": "01M7B9GWAPSQ6B80R8KFG9N7PK",
+  "create_time": "2026-11-13T20:27:57.142276404Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9GWAPSQ6B80R8KFG9N7PK",
+      "revision": "1",
+      "title": "RestoreVersion",
+      "description": "Implement `RestoreVersion` (user only) in the service and Connect handler: take the snapshot at the requested revision from history, write it as a new revision with a `CHANGE_TYPE_RESTORED` entry (`restored_revision` set). Re-check the rules a restore could break (parent exists, no new cycles, ranks) and reject with FAILED_PRECONDITION if the old version no longer fits.",
+      "create_time": "2026-11-13T20:27:57.142276404Z",
+      "update_time": "2026-11-13T20:27:57.142276404Z",
+      "task": {
+        "feature_id": "01M7B9FEJMXRESWRBB4C01M2VP",
+        "status": "STATUS_READY",
+        "rank": "i"
+      }
+    }
+  }
+}

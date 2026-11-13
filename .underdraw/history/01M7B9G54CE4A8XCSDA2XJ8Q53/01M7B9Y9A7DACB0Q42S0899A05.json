@@ -1,0 +1,40 @@
+{
+  "id": "01M7B9Y9A7DACB0Q42S0899A05",
+  "item_id": "01M7B9G54CE4A8XCSDA2XJ8Q53",
+  "create_time": "2026-11-13T20:35:16.417005780Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_UPDATED",
+    "revision": "3",
+    "changed_fields": [
+      "title",
+      "description"
+    ],
+    "snapshot": {
+      "id": "01M7B9G54CE4A8XCSDA2XJ8Q53",
+      "revision": "3",
+      "title": "underdraw add and underdraw edit",
+      "description": "Create and edit items as the user.\n\n- `underdraw add project|feature|task <title>` with `--project` / `--feature` and `--description` (or `-` / an editor for long markdown). Prints the new ID. User-created features are ready, not drafts; add `--draft` to create an idea.\n- `underdraw edit <id>` for title, description and parent. The CLI fetches the current revision itself and reports a revision conflict clearly.\n- `underdraw note <id> <body>` adds a decision note.",
+      "create_time": "2026-11-13T20:27:33.388658879Z",
+      "update_time": "2026-11-13T20:35:16.417005780Z",
+      "task": {
+        "feature_id": "01M7B9FEFMQHM60YYTGY6TNTR0",
+        "status": "STATUS_READY",
+        "rank": "w",
+        "depends_on": [
+          {
+            "item_id": "01M7B9G52R5PJ5GQA6RT49ZRMN",
+            "block_until": "BLOCK_UNTIL_DONE"
+          }
+        ]
+      }
+    }
+  }
+}

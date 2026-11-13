@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9GW9J73J1TG8MRCT5GNWD",
+  "item_id": "01M7B9GW9B0C6ZABD7773YTFG3",
+  "create_time": "2026-11-13T20:27:57.099880121Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9GW9B0C6ZABD7773YTFG3",
+      "revision": "1",
+      "title": "Graph view with React Flow",
+      "description": "A flow chart of features and tasks (`@xyflow/react`) with automatic layout (e.g. dagre or elkjs).\n\n- Nodes: features (grouping their tasks) and tasks, colored by effective status, with blocked and claimed indicators.\n- Edges: dependencies from blocker to blocked, styled differently for `block_until` in review vs done.\n- Live updates through WatchItems; filter by project.",
+      "create_time": "2026-11-13T20:27:57.099880121Z",
+      "update_time": "2026-11-13T20:27:57.099880121Z",
+      "task": {
+        "feature_id": "01M7B9FEHYM9G1AWJ53W13VX9X",
+        "status": "STATUS_READY",
+        "rank": "i"
+      }
+    }
+  }
+}

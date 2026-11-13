@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9G56KV388YKFV2ACW6TX7",
+  "item_id": "01M7B9G56D52Z89A4B609WSDEJ",
+  "create_time": "2026-11-13T20:27:33.453243690Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9G56D52Z89A4B609WSDEJ",
+      "revision": "1",
+      "title": "Watch and reload changed item files",
+      "description": "Add `internal/watch`: an fsnotify watcher on `.kiln/items/` and `.kiln/history/` with debouncing, so a `git checkout` touching many files triggers one reload.\n\nOn a change, the service reloads the affected items under its mutex.\n- A changed item gets a new revision (above both the file's and the in-memory one) and a `CHANGE_TYPE_EXTERNAL_EDIT` entry with actor `ACTOR_TYPE_EXTERNAL`.\n- New files are added and missing files are removed.\n- Invalid files are logged and skipped; the previous in-memory version stays.\n- The daemon's own writes must not be picked up as external edits (e.g. compare content to what it wrote).",
+      "create_time": "2026-11-13T20:27:33.453243690Z",
+      "update_time": "2026-11-13T20:27:33.453243690Z",
+      "task": {
+        "feature_id": "01M7B9FEGMY1DR2DYXJ0BCSV5N",
+        "status": "STATUS_READY",
+        "rank": "i"
+      }
+    }
+  }
+}

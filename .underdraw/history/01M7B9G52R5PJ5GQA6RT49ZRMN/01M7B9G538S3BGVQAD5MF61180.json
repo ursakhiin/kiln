@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9G538S3BGVQAD5MF61180",
+  "item_id": "01M7B9G52R5PJ5GQA6RT49ZRMN",
+  "create_time": "2026-11-13T20:27:33.336767035Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9G52R5PJ5GQA6RT49ZRMN",
+      "revision": "1",
+      "title": "Daemon discovery and auto-start",
+      "description": "Every CLI command finds this repo's daemon and starts it if needed.\n\n- Find the repo root (`daemon.FindRepoRoot`), read `.kiln/run/daemon.json` and health-check the address.\n- If no daemon answers, start `kiln serve` detached (own process group, output to a log under `.kiln/run/`), then wait until it's ready, with a timeout and a clear error.\n- Handle a stale `daemon.json` (process gone) and a held lock (`ErrAlreadyRunning`) without starting a second daemon.\n- Give commands a shared Connect client (`kilnv1connect.NewKilnServiceClient`).\n\nTests: auto-start from a cold repo, reuse of a running daemon, stale `daemon.json`.",
+      "create_time": "2026-11-13T20:27:33.336767035Z",
+      "update_time": "2026-11-13T20:27:33.336767035Z",
+      "task": {
+        "feature_id": "01M7B9FEFMQHM60YYTGY6TNTR0",
+        "status": "STATUS_READY",
+        "rank": "i"
+      }
+    }
+  }
+}

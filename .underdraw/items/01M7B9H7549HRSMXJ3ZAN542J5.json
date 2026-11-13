@@ -1,0 +1,13 @@
+{
+  "id": "01M7B9H7549HRSMXJ3ZAN542J5",
+  "revision": "1",
+  "title": "Small correctness fixes from the step 2 reviews",
+  "description": "- `get_item_changes(since_revision=N)` skips WORK_STATE_UPDATED entries recorded at revision N (work-state entries keep the current revision); compare by entry ID or document it in the proto.\n- Duplicate `update_mask` paths are accepted and recorded twice in `changed_fields`.\n- A malformed or empty rank on disk surfaces as INVALID_ARGUMENT to a caller who sent no rank.\n- `context.Canceled` / `DeadlineExceeded` map to INTERNAL in `service.ErrorCode`.\n- The localhost Host check is case-sensitive and rejects a trailing dot (`localhost.`).\n- Re-claiming your own task doesn't refresh its feature affinity.",
+  "create_time": "2026-11-13T20:28:08.228459464Z",
+  "update_time": "2026-11-13T20:28:08.228459464Z",
+  "task": {
+    "feature_id": "01M7B9FEKWCDAMCV9M43GNGFV0",
+    "status": "STATUS_READY",
+    "rank": "w"
+  }
+}

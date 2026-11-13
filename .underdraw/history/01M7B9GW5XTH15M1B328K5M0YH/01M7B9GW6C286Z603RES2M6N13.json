@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9GW6C286Z603RES2M6N13",
+  "item_id": "01M7B9GW5XTH15M1B328K5M0YH",
+  "create_time": "2026-11-13T20:27:56.989145609Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9GW5XTH15M1B328K5M0YH",
+      "revision": "1",
+      "title": "WatchItems streaming RPC",
+      "description": "Implement `WatchItems` (server stream) in the service and the Connect handler (currently Unimplemented): every create, update and delete, including outside reloads once watching exists, is pushed to subscribers as `updated` ItemInfo or `deleted_id`.\n\nSubscribers must not block writers (buffered channel per subscriber; a slow subscriber is dropped and reconnects). The GUI uses it for live updates.",
+      "create_time": "2026-11-13T20:27:56.989145609Z",
+      "update_time": "2026-11-13T20:27:56.989145609Z",
+      "task": {
+        "feature_id": "01M7B9FEH91NWK7XR50ADNVTFB",
+        "status": "STATUS_READY",
+        "rank": "i"
+      }
+    }
+  }
+}

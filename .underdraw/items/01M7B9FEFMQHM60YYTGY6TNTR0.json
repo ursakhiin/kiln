@@ -1,0 +1,12 @@
+{
+  "id": "01M7B9FEFMQHM60YYTGY6TNTR0",
+  "revision": "3",
+  "title": "CLI commands",
+  "description": "Step 3 of the build order. Scriptable `underdraw` commands for the user (e.g. `underdraw list`, `underdraw add`, `underdraw next`), going through the daemon's Connect API as the user. Any command auto-starts the daemon if it isn't running.\n\nThe CLI replaces `buf curl` for user-only actions while dogfooding: promoting drafts, marking work done, reranking, deleting.\n\nRequirements.md: Interfaces → CLI; Architecture → Daemon (auto-start). A full-screen TUI is later and out of scope here.",
+  "create_time": "2026-11-13T20:27:10.196860439Z",
+  "update_time": "2026-11-13T20:35:16.207473821Z",
+  "feature": {
+    "project_id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+    "rank": "i"
+  }
+}

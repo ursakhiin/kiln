@@ -1,0 +1,19 @@
+{
+  "id": "01M7B9G53Q1MBQQXSR9E6DMJZC",
+  "revision": "3",
+  "title": "underdraw list and underdraw show",
+  "description": "Read commands.\n\n- `underdraw list`: features in rank order with their tasks, showing ID, title, effective status, blocked and claim. Filters: `--kind`, `--project`, `--feature`, `--status`. `--json` prints the protojson response for scripting.\n- `underdraw show <id>`: one item with its description, dependencies, work state and revision.\n- `underdraw history <id>` with `--children` and `--notes`.\n\nAdd commands with `cobra-cli add <name> -a \"Peter Rauhut\" -l none` from `cmd/underdraw/`.",
+  "create_time": "2026-11-13T20:27:33.367468613Z",
+  "update_time": "2026-11-13T20:35:16.359944416Z",
+  "task": {
+    "feature_id": "01M7B9FEFMQHM60YYTGY6TNTR0",
+    "status": "STATUS_READY",
+    "rank": "r",
+    "depends_on": [
+      {
+        "item_id": "01M7B9G52R5PJ5GQA6RT49ZRMN",
+        "block_until": "BLOCK_UNTIL_DONE"
+      }
+    ]
+  }
+}

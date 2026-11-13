@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9FEJ5BN8MFDCG1D8V252P",
+  "item_id": "01M7B9FEHYM9G1AWJ53W13VX9X",
+  "create_time": "2026-11-13T20:27:10.270748186Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9FEHYM9G1AWJ53W13VX9X",
+      "revision": "1",
+      "title": "Dependency graph view",
+      "description": "Step 5 of the build order. A React Flow flow chart of features and tasks with their dependencies, so the user can see workstreams, blockers and what's next at a glance.\n\nShows status and blocked state on each node, distinguishes `block_until` done vs in review on edges, and lets the user add and remove dependencies (cycle rejections shown clearly).",
+      "create_time": "2026-11-13T20:27:10.270748186Z",
+      "update_time": "2026-11-13T20:27:10.270748186Z",
+      "feature": {
+        "project_id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+        "draft": true,
+        "rank": "y"
+      }
+    }
+  }
+}

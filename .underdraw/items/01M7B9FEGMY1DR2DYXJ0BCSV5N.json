@@ -1,0 +1,13 @@
+{
+  "id": "01M7B9FEGMY1DR2DYXJ0BCSV5N",
+  "revision": "2",
+  "title": "Watch .underdraw/ for outside changes",
+  "description": "The daemon watches `.underdraw/` with fsnotify and reloads on outside changes: hand edits, `git pull`, branch switches and merges. Deferred from step 2, where files load only at startup.\n\nRequirements.md, Architecture → Daemon: rebuild the index, bump revisions and push updates; report invalid files without crashing.\n\nRelated history types: `CHANGE_TYPE_EXTERNAL_EDIT` with actor `ACTOR_TYPE_EXTERNAL`, and the ChangeEvent note about recording a merged result as a new revision.",
+  "create_time": "2026-11-13T20:27:10.228637153Z",
+  "update_time": "2026-11-13T20:35:16.226810638Z",
+  "feature": {
+    "project_id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+    "draft": true,
+    "rank": "r"
+  }
+}

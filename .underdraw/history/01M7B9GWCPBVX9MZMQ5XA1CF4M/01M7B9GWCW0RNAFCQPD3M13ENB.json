@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9GWCW0RNAFCQPD3M13ENB",
+  "item_id": "01M7B9GWCPBVX9MZMQ5XA1CF4M",
+  "create_time": "2026-11-13T20:27:57.206341350Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9GWCPBVX9MZMQ5XA1CF4M",
+      "revision": "1",
+      "title": "SQLite index behind the service's item lookups",
+      "description": "Add `internal/index` on `modernc.org/sqlite`, stored under `.kiln/run/` (gitignored).\n\n- Rebuilt from the `.kiln/` files on startup if missing or stale; it must never be the source of truth.\n- Kept in sync on every service write and reload.\n- Serves the queries that are slow in memory today: ListItems filters, next_task candidates, blocking and effective status (both currently scan every item, roughly O(n²)).\n\nMeasure first: only switch a query once a benchmark with a few thousand items shows the in-memory version is too slow.",
+      "create_time": "2026-11-13T20:27:57.206341350Z",
+      "update_time": "2026-11-13T20:27:57.206341350Z",
+      "task": {
+        "feature_id": "01M7B9FEK8XCXSVZ2TDMFNDZX8",
+        "status": "STATUS_READY",
+        "rank": "i"
+      }
+    }
+  }
+}

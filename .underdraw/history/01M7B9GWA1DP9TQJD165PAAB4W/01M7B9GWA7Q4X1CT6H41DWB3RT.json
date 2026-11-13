@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9GWA7Q4X1CT6H41DWB3RT",
+  "item_id": "01M7B9GWA1DP9TQJD165PAAB4W",
+  "create_time": "2026-11-13T20:27:57.121146602Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9GWA1DP9TQJD165PAAB4W",
+      "revision": "1",
+      "title": "Edit dependencies from the graph",
+      "description": "Add a dependency by connecting two nodes (choose done or in review) and remove one by deleting its edge, via AddDependency/RemoveDependency with the blocked item's revision. Show cycle rejections (FAILED_PRECONDITION) clearly and leave the graph unchanged.",
+      "create_time": "2026-11-13T20:27:57.121146602Z",
+      "update_time": "2026-11-13T20:27:57.121146602Z",
+      "task": {
+        "feature_id": "01M7B9FEHYM9G1AWJ53W13VX9X",
+        "status": "STATUS_READY",
+        "rank": "r"
+      }
+    }
+  }
+}

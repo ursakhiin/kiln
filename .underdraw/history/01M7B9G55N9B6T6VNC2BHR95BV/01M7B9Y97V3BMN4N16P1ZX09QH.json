@@ -1,0 +1,40 @@
+{
+  "id": "01M7B9Y97V3BMN4N16P1ZX09QH",
+  "item_id": "01M7B9G55N9B6T6VNC2BHR95BV",
+  "create_time": "2026-11-13T20:35:16.341012676Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_UPDATED",
+    "revision": "3",
+    "changed_fields": [
+      "title",
+      "description"
+    ],
+    "snapshot": {
+      "id": "01M7B9G55N9B6T6VNC2BHR95BV",
+      "revision": "3",
+      "title": "underdraw next: preview the next task",
+      "description": "`underdraw next` shows the task `next_task` would offer an agent, without claiming it (NextTask is agent-only and claims).\n\nNeeds a proto change first: either a read-only `PeekNextTask` RPC or a `dry_run` flag on NextTaskRequest. Decide which, record a decision note, update `proto/underdraw/v1/service.proto`, run `make gen`, then implement in the service and the CLI. Since the user has no affinity, show the order an agent with no affinity would get.",
+      "create_time": "2026-11-13T20:27:33.429865700Z",
+      "update_time": "2026-11-13T20:35:16.341012676Z",
+      "task": {
+        "feature_id": "01M7B9FEFMQHM60YYTGY6TNTR0",
+        "status": "STATUS_READY",
+        "rank": "z",
+        "depends_on": [
+          {
+            "item_id": "01M7B9G52R5PJ5GQA6RT49ZRMN",
+            "block_until": "BLOCK_UNTIL_DONE"
+          }
+        ]
+      }
+    }
+  }
+}

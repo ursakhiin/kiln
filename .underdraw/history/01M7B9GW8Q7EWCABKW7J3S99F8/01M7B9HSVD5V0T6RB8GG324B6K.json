@@ -1,0 +1,39 @@
+{
+  "id": "01M7B9HSVD5V0T6RB8GG324B6K",
+  "item_id": "01M7B9GW8Q7EWCABKW7J3S99F8",
+  "create_time": "2026-11-13T20:28:27.367567567Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_DEPENDENCY_ADDED",
+    "revision": "2",
+    "changed_fields": [
+      "task.depends_on"
+    ],
+    "snapshot": {
+      "id": "01M7B9GW8Q7EWCABKW7J3S99F8",
+      "revision": "2",
+      "title": "Create, edit and review items in the GUI",
+      "description": "- Create projects, features (ready or draft) and tasks; edit title, description and parent.\n- Promote draft features (\"mark idea ready\").\n- Set status, including marking work done after review, and feature status overrides.\n- Delete items (with confirmation; the service rejects items with children or dependents).\n- Add decision notes.\n\nEvery write sends the revision it's based on and handles conflicts as in drag-and-drop.",
+      "create_time": "2026-11-13T20:27:57.079560483Z",
+      "update_time": "2026-11-13T20:28:27.367567567Z",
+      "task": {
+        "feature_id": "01M7B9FEH91NWK7XR50ADNVTFB",
+        "status": "STATUS_READY",
+        "rank": "z",
+        "depends_on": [
+          {
+            "item_id": "01M7B9GW7FF4BPZB9FJY10808W",
+            "block_until": "BLOCK_UNTIL_DONE"
+          }
+        ]
+      }
+    }
+  }
+}

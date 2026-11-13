@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9FEKEBCNXQ4Z5M1ZKDCX3",
+  "item_id": "01M7B9FEK8XCXSVZ2TDMFNDZX8",
+  "create_time": "2026-11-13T20:27:10.312758999Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9FEK8XCXSVZ2TDMFNDZX8",
+      "revision": "1",
+      "title": "SQLite index",
+      "description": "A gitignored SQLite index (via `modernc.org/sqlite`) for fast queries and graph rendering, always rebuildable from the `.kiln/` files. Step 2 uses an in-memory index instead; add this when the graph view or larger repos need it, behind the same interface.\n\nRequirements.md: Architecture → Storage. Lives under `.kiln/run/` (already gitignored).",
+      "create_time": "2026-11-13T20:27:10.312758999Z",
+      "update_time": "2026-11-13T20:27:10.312758999Z",
+      "feature": {
+        "project_id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+        "draft": true,
+        "rank": "zi"
+      }
+    }
+  }
+}

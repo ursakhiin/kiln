@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9G557S7K29DEEE08RV0M5",
+  "item_id": "01M7B9G551Z55JSVZ6NE6MEGFT",
+  "create_time": "2026-11-13T20:27:33.409215396Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9G551Z55JSVZ6NE6MEGFT",
+      "revision": "1",
+      "title": "User-only actions: ready, status, move, rm, deps",
+      "description": "The user-only actions that currently need `buf curl`.\n\n- `kiln ready <feature-id>`: promote a draft (UpdateItem, mask `feature.draft`).\n- `kiln status <id> <status>`: set a task's status (including `done`) or a feature's override; `--clear` removes the override.\n- `kiln move <id> --before <id> | --after <id>`: rerank.\n- `kiln rm <id>`: delete.\n- `kiln dep add <id> <blocker> [--until review]` and `kiln dep rm <id> <blocker>`.\n- `kiln release <task-id>`: free a stuck claim.\n\nEach command fetches the current revision itself.",
+      "create_time": "2026-11-13T20:27:33.409215396Z",
+      "update_time": "2026-11-13T20:27:33.409215396Z",
+      "task": {
+        "feature_id": "01M7B9FEFMQHM60YYTGY6TNTR0",
+        "status": "STATUS_READY",
+        "rank": "y"
+      }
+    }
+  }
+}

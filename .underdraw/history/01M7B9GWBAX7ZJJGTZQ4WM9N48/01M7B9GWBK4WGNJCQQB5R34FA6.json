@@ -1,0 +1,30 @@
+{
+  "id": "01M7B9GWBK4WGNJCQQB5R34FA6",
+  "item_id": "01M7B9GWBAX7ZJJGTZQ4WM9N48",
+  "create_time": "2026-11-13T20:27:57.162795210Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_CREATED",
+    "revision": "1",
+    "snapshot": {
+      "id": "01M7B9GWBAX7ZJJGTZQ4WM9N48",
+      "revision": "1",
+      "title": "History and version diff in the GUI",
+      "description": "Per item: the change log (who, when, what changed, using `changed_fields`) and decision notes, oldest first, with `include_children` for features and projects. Pick two versions to see a field-by-field diff of their snapshots (description as a text diff), and restore a version (calls RestoreVersion).",
+      "create_time": "2026-11-13T20:27:57.162795210Z",
+      "update_time": "2026-11-13T20:27:57.162795210Z",
+      "task": {
+        "feature_id": "01M7B9FEJMXRESWRBB4C01M2VP",
+        "status": "STATUS_READY",
+        "rank": "r"
+      }
+    }
+  }
+}

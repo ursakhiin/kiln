@@ -1,0 +1,13 @@
+{
+  "id": "01M7B9FEH91NWK7XR50ADNVTFB",
+  "revision": "1",
+  "title": "Web GUI list view with drag-and-drop ranking",
+  "description": "Step 4 of the build order. A React GUI served by the daemon (embedded in the binary from `internal/webui/dist`) that calls the Connect API with `connect-es`.\n\nList view: projects → ranked features → ranked tasks, showing effective status, blocked state and claims. Drag-and-drop reranking via MoveItem. The user can create and edit items, promote drafts, set status (including done) and delete.\n\nLive updates come from the WatchItems streaming RPC.",
+  "create_time": "2026-11-13T20:27:10.249967464Z",
+  "update_time": "2026-11-13T20:27:10.249967464Z",
+  "feature": {
+    "project_id": "01M7B9EZ98ZN1FQEPNB4534EQ3",
+    "draft": true,
+    "rank": "w"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "01M7B9HSQ59B688149TQPJYBBQ",
+  "item_id": "01M7B9G54CE4A8XCSDA2XJ8Q53",
+  "create_time": "2026-11-13T20:28:27.231382441Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_DEPENDENCY_ADDED",
+    "revision": "2",
+    "changed_fields": [
+      "task.depends_on"
+    ],
+    "snapshot": {
+      "id": "01M7B9G54CE4A8XCSDA2XJ8Q53",
+      "revision": "2",
+      "title": "kiln add and kiln edit",
+      "description": "Create and edit items as the user.\n\n- `kiln add project|feature|task <title>` with `--project` / `--feature` and `--description` (or `-` / an editor for long markdown). Prints the new ID. User-created features are ready, not drafts; add `--draft` to create an idea.\n- `kiln edit <id>` for title, description and parent. The CLI fetches the current revision itself and reports a revision conflict clearly.\n- `kiln note <id> <body>` adds a decision note.",
+      "create_time": "2026-11-13T20:27:33.388658879Z",
+      "update_time": "2026-11-13T20:28:27.231382441Z",
+      "task": {
+        "feature_id": "01M7B9FEFMQHM60YYTGY6TNTR0",
+        "status": "STATUS_READY",
+        "rank": "w",
+        "depends_on": [
+          {
+            "item_id": "01M7B9G52R5PJ5GQA6RT49ZRMN",
+            "block_until": "BLOCK_UNTIL_DONE"
+          }
+        ]
+      }
+    }
+  }
+}

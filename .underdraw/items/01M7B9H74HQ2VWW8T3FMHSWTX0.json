@@ -1,0 +1,13 @@
+{
+  "id": "01M7B9H74HQ2VWW8T3FMHSWTX0",
+  "revision": "1",
+  "title": "Stop exposing raw MCP session IDs",
+  "description": "The agent ID is the MCP session ID, which works like a bearer credential: anyone who sends it as `Mcp-Session-Id` acts as that agent. It's shown to other agents (Claim.agent_id, \"claimed by agent …\" errors, the task context) and written into committed history. Use a derived ID (e.g. a short hash, or a per-session random name) for display and storage, keeping the session ID only in memory.",
+  "create_time": "2026-11-13T20:28:08.209900450Z",
+  "update_time": "2026-11-13T20:28:08.209900450Z",
+  "task": {
+    "feature_id": "01M7B9FEKWCDAMCV9M43GNGFV0",
+    "status": "STATUS_READY",
+    "rank": "r"
+  }
+}

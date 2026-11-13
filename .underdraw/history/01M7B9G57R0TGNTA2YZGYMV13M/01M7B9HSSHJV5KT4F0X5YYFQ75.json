@@ -1,0 +1,39 @@
+{
+  "id": "01M7B9HSSHJV5KT4F0X5YYFQ75",
+  "item_id": "01M7B9G57R0TGNTA2YZGYMV13M",
+  "create_time": "2026-11-13T20:28:27.307436120Z",
+  "actor": {
+    "type": "ACTOR_TYPE_AGENT",
+    "agent_id": "7ALSEDZAHD4I6GDFPQVZCB7U5L",
+    "session": {
+      "host": "claude-code",
+      "host_version": "2.1.323"
+    }
+  },
+  "change": {
+    "type": "CHANGE_TYPE_DEPENDENCY_ADDED",
+    "revision": "2",
+    "changed_fields": [
+      "task.depends_on"
+    ],
+    "snapshot": {
+      "id": "01M7B9G57R0TGNTA2YZGYMV13M",
+      "revision": "2",
+      "title": "Handle merged branches",
+      "description": "Two branches can each change the same item (both at revision N), or together form a dependency cycle no single change created.\n\n- After a merge, record the merged result as a new revision (history.proto, ChangeEvent.revision).\n- A pre-existing cycle must not block unrelated task moves: today UpdateItem runs `core.HasCycle` over all items and rejects any reparent while a cycle exists, with a message blaming the move. Reject only changes that create a new cycle (compare before and after), and report existing cycles so the user can fix them.",
+      "create_time": "2026-11-13T20:27:33.496641941Z",
+      "update_time": "2026-11-13T20:28:27.307436120Z",
+      "task": {
+        "feature_id": "01M7B9FEGMY1DR2DYXJ0BCSV5N",
+        "status": "STATUS_READY",
+        "rank": "w",
+        "depends_on": [
+          {
+            "item_id": "01M7B9G56D52Z89A4B609WSDEJ",
+            "block_until": "BLOCK_UNTIL_DONE"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "01M7B9H73JMDT1XTKTV4P9M9H9",
+  "revision": "1",
+  "title": "Don't treat user-started tasks as abandoned",
+  "description": "If the user sets a task to in progress (the user can't claim), `next_task` immediately offers it to an agent as abandoned, with the \"another agent started this task\" warning. Decide the intended behavior before the GUI makes this easy, e.g. only treat a task as abandoned if an agent's claim ended on it, or let user-started tasks be skipped. Record the decision as a note.",
+  "create_time": "2026-11-13T20:28:08.178988544Z",
+  "update_time": "2026-11-13T20:28:08.178988544Z",
+  "task": {
+    "feature_id": "01M7B9FEKWCDAMCV9M43GNGFV0",
+    "status": "STATUS_READY",
+    "rank": "i"
+  }
+}
