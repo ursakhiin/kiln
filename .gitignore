@@ -8,3 +8,6 @@
 # Kiln runtime files (the .kiln/ text files themselves are committed)
 .kiln/index.db*
 .kiln/daemon.json
+
+# Claude Code worktrees
+.claude/worktrees/
