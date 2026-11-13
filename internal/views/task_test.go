@@ -28,10 +28,11 @@ func TestRenderTaskContextFull(t *testing.T) {
 		PullRequestUrl: "https://example.com/pr/1",
 		Session: &kilnv1.AgentSession{Host: "claude-code", HostVersion: "2.0", SessionId: "s1",
 			TranscriptPath: "/tr.jsonl", Model: "opus"},
-		Progress:   "Half done.",
-		Files:      []string{"a.md", "b.md"},
-		Extra:      map[string]string{"note": "hi"},
-		UpdateTime: ts(10),
+		Progress:       "Half done.",
+		Files:          []string{"a.md", "b.md"},
+		CredentialRefs: []string{"GH_TOKEN", "NPM_TOKEN"},
+		Extra:          map[string]string{"note": "hi", "alpha": "first"},
+		UpdateTime:     ts(10),
 	}}}
 	feature := info("f1", "Views", kilnv1.Status_STATUS_IN_PROGRESS)
 	feature.Item.Revision = 2
@@ -68,7 +69,7 @@ func TestRenderTaskContextFull(t *testing.T) {
 		"- Branch: `kiln/t2`\n- Worktree: `/w/t2`\n- Base commit: `aaa`\n- Head commit: `bbb`\n" +
 		"- Pull request: https://example.com/pr/1\n" +
 		"- Session: claude-code 2.0, session `s1`, model `opus`, transcript `/tr.jsonl`\n" +
-		"- Files: `a.md`, `b.md`\n- note: hi\n- Updated: 2026-11-13T10:00:00Z\n\n" +
+		"- Files: `a.md`, `b.md`\n- Credentials needed (names only): `GH_TOKEN`, `NPM_TOKEN`\n- alpha: first\n- note: hi\n- Updated: 2026-11-13T10:00:00Z\n\n" +
 		"### Progress\n\nHalf done.\n\n" +
 		"## Feature: Views\n\n- ID: `f1`\n- Revision: 2\n- Status: in progress\n\nAll views.\n\n" +
 		"### Feature dependencies\n\n- [in review] Base (`f0`), blocks until in review, satisfied\n\n" +
