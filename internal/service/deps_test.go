@@ -133,3 +133,10 @@ func TestRemoveDependency(t *testing.T) {
 	_, err = svc.RemoveDependency(user, req)
 	wantCode(t, err, connect.CodeNotFound)
 }
+
+func TestAddDependencyRejectsUnknownBlockUntil(t *testing.T) {
+	svc, _, _ := newService(t, seedTasks()...)
+	// protojson accepts numeric enum values outside the declared set.
+	_, err := svc.AddDependency(user, addDep(3, 1, 4, kilnv1.BlockUntil(7)))
+	wantCode(t, err, connect.CodeInvalidArgument)
+}

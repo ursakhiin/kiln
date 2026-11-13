@@ -361,3 +361,71 @@ func TestRestartIgnoresUpdateTimeOnly(t *testing.T) {
 		t.Fatalf("%d WORK_STATE_UPDATED entries, want 0", n)
 	}
 }
+
+// Another actor's change while an agent's work state is pending doesn't take
+// credit for it: the agent's work state gets its own entry first.
+func TestWorkStateOtherActorCommitIsRecordedSeparately(t *testing.T) {
+	svc, _, repo := newService(t, oneTask()...)
+	rev := claim(t, svc, agent("a1"), t1).GetTask().GetItem().GetRevision()
+	recordBranch(t, svc, agent("a1"), t1)
+	_, err := svc.UpdateItem(user, &kilnv1.UpdateItemRequest{
+		Item:         &kilnv1.Item{Id: id(t1), Title: "Renamed"},
+		BaseRevision: rev, UpdateMask: mask("title"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	es := taskHistory(t, repo, t1)
+	if len(es) < 2 {
+		t.Fatalf("%d history entries, want at least 2", len(es))
+	}
+	ws, upd := es[len(es)-2], es[len(es)-1]
+	if got := upd.GetChange().GetType(); got != kilnv1.ChangeType_CHANGE_TYPE_UPDATED {
+		t.Fatalf("last entry type = %v, want UPDATED", got)
+	}
+	if a := upd.GetActor(); a.GetType() != kilnv1.ActorType_ACTOR_TYPE_USER {
+		t.Fatalf("last entry actor = %v, want the user", a)
+	}
+	if got := upd.GetChange().GetChangedFields(); !slices.Equal(got, []string{"title"}) {
+		t.Fatalf("user's changed_fields = %v, want [title]", got)
+	}
+	if got := ws.GetChange().GetType(); got != kilnv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED {
+		t.Fatalf("entry before the user's: type = %v, want WORK_STATE_UPDATED", got)
+	}
+	if a := ws.GetActor(); a.GetType() != kilnv1.ActorType_ACTOR_TYPE_AGENT || a.GetAgentId() != "a1" {
+		t.Fatalf("work-state actor = %v, want agent a1", a)
+	}
+	if got := ws.GetChange().GetRevision(); got != rev {
+		t.Fatalf("work-state revision = %d, want %d", got, rev)
+	}
+	want := []string{"task.work_state.branch", "task.work_state.progress", "task.work_state.session"}
+	if got := ws.GetChange().GetChangedFields(); !slices.Equal(got, want) {
+		t.Fatalf("work-state changed_fields = %v, want %v", got, want)
+	}
+	if got := ws.GetChange().GetSnapshot().GetTitle(); got == "Renamed" {
+		t.Fatal("work-state snapshot has the user's later title")
+	}
+}
+
+// Another agent's change while a1's work state is pending is also recorded
+// separately.
+func TestWorkStateOtherAgentCommitIsRecordedSeparately(t *testing.T) {
+	svc, _, repo := newService(t, oneTask()...)
+	rev := claim(t, svc, agent("a1"), t1).GetTask().GetItem().GetRevision()
+	recordBranch(t, svc, agent("a1"), t1)
+	_, err := svc.UpdateItem(agent("a2"), &kilnv1.UpdateItemRequest{
+		Item:         &kilnv1.Item{Id: id(t1), Title: "Renamed"},
+		BaseRevision: rev, UpdateMask: mask("title"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	es := taskHistory(t, repo, t1)
+	ws, upd := es[len(es)-2], es[len(es)-1]
+	if a := upd.GetActor(); a.GetAgentId() != "a2" || !slices.Equal(upd.GetChange().GetChangedFields(), []string{"title"}) {
+		t.Fatalf("a2's entry: actor %v, changed_fields %v", a, upd.GetChange().GetChangedFields())
+	}
+	if a := ws.GetActor(); ws.GetChange().GetType() != kilnv1.ChangeType_CHANGE_TYPE_WORK_STATE_UPDATED || a.GetAgentId() != "a1" {
+		t.Fatalf("entry before a2's: type %v, actor %v", ws.GetChange().GetType(), a)
+	}
+}

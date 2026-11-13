@@ -47,8 +47,12 @@ func (s *Service) AddDependency(ctx context.Context, req *kilnv1.AddDependencyRe
 	}
 
 	d := proto.Clone(req.GetDependency()).(*kilnv1.Dependency)
-	if d.GetBlockUntil() == kilnv1.BlockUntil_BLOCK_UNTIL_UNSPECIFIED {
+	switch d.GetBlockUntil() {
+	case kilnv1.BlockUntil_BLOCK_UNTIL_UNSPECIFIED:
 		d.BlockUntil = kilnv1.BlockUntil_BLOCK_UNTIL_DONE
+	case kilnv1.BlockUntil_BLOCK_UNTIL_DONE, kilnv1.BlockUntil_BLOCK_UNTIL_IN_REVIEW:
+	default:
+		return nil, fmt.Errorf("unknown block_until value %d: %w", d.GetBlockUntil(), core.ErrInvalidArgument)
 	}
 	updated := proto.Clone(item).(*kilnv1.Item)
 	switch k := updated.GetKind().(type) {

@@ -104,13 +104,19 @@ func (s *Service) begin(ctx context.Context) (Caller, func(), error) {
 // creation), writes the item file, caches the item, then appends one
 // ChangeEvent history entry whose snapshot is the written item. fields are
 // the changed field paths, empty for creation; a task's pending work-state
-// fields are appended to them, sorted, and stop being pending.
+// fields are appended to them, sorted, and stop being pending, but only if
+// caller is the actor they're attributed to. Another actor's pending work
+// state is first recorded in its own WORK_STATE_UPDATED entry, at the item's
+// revision before this change, so the caller isn't credited with it.
 //
 // If writing the item file fails, commit returns the error and the cache is
 // unchanged. If appending the history entry fails, the item file is already
 // saved and is the source of truth, so commit logs the failure at Error and
 // returns nil: reporting an error would tell the caller the change was lost.
 func (s *Service) commit(caller Caller, item *kilnv1.Item, typ kilnv1.ChangeType, fields []string) error {
+	if p := s.pending[item.GetId()]; p != nil && (p.actor != caller.Actor || p.agentID != caller.AgentID) {
+		s.recordPendingWorkState(item.GetId())
+	}
 	now := timestamppb.New(s.now())
 	if typ == kilnv1.ChangeType_CHANGE_TYPE_CREATED {
 		item.Revision = 1
