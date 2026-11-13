@@ -206,6 +206,57 @@ func TestSchemaRejectsUnsupportedWellKnownType(t *testing.T) {
 	}
 }
 
+func TestSchemaFieldCommentKeepsOneofHint(t *testing.T) {
+	str := descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()
+	opt := descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()
+	fdp := &descriptorpb.FileDescriptorProto{
+		Name:    proto.String("test/cmt.proto"),
+		Package: proto.String("test"),
+		Syntax:  proto.String("proto3"),
+		Options: &descriptorpb.FileOptions{GoPackage: proto.String("example.com/cmt;cmt")},
+		MessageType: []*descriptorpb.DescriptorProto{
+			{
+				Name: proto.String("Inner"),
+				Field: []*descriptorpb.FieldDescriptorProto{
+					{Name: proto.String("a"), Number: proto.Int32(1), Label: opt, Type: str, OneofIndex: proto.Int32(0), JsonName: proto.String("a")},
+					{Name: proto.String("b"), Number: proto.Int32(2), Label: opt, Type: str, OneofIndex: proto.Int32(0), JsonName: proto.String("b")},
+				},
+				OneofDecl: []*descriptorpb.OneofDescriptorProto{{Name: proto.String("kind")}},
+			},
+			{
+				Name: proto.String("Outer"),
+				Field: []*descriptorpb.FieldDescriptorProto{{
+					Name: proto.String("inner"), Number: proto.Int32(1), Label: opt,
+					Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+					TypeName: proto.String(".test.Inner"), JsonName: proto.String("inner"),
+				}},
+			},
+		},
+		SourceCodeInfo: &descriptorpb.SourceCodeInfo{Location: []*descriptorpb.SourceCodeInfo_Location{
+			{Path: []int32{4, 1, 2, 0}, Span: []int32{0, 0, 0}, LeadingComments: proto.String(" The inner thing.\n")},
+		}},
+	}
+	p, err := protogen.Options{}.New(&pluginpb.CodeGeneratorRequest{
+		FileToGenerate: []string{"test/cmt.proto"},
+		ProtoFile:      []*descriptorpb.FileDescriptorProto{fdp},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := inputSchema(p.FilesByPath["test/cmt.proto"].Messages[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	var tree map[string]any
+	if err := json.Unmarshal([]byte(jsonOf(t, s)), &tree); err != nil {
+		t.Fatal(err)
+	}
+	want := "The inner thing.\n\nSet at most one of: a, b."
+	if got := at(t, tree, "inner")["description"]; got != want {
+		t.Fatalf("description = %q, want %q", got, want)
+	}
+}
+
 func TestCommentText(t *testing.T) {
 	got := commentText(protogen.Comments("// First line.\n//   indented\n//\n// Last.\n"))
 	want := "First line.\n  indented\n\nLast."

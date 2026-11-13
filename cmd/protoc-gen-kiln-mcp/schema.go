@@ -31,7 +31,8 @@ func messageSchema(m *protogen.Message, stack []protoreflect.FullName) (map[stri
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", f.Desc.FullName(), err)
 		}
-		if d := commentText(f.Comments.Leading); d != "" {
+		existing, _ := s["description"].(string)
+		if d := joinDescriptions(commentText(f.Comments.Leading), existing); d != "" {
 			s["description"] = d
 		}
 		props[string(f.Desc.Name())] = s
@@ -116,6 +117,18 @@ func singularSchema(f *protogen.Field, stack []protoreflect.FullName) (map[strin
 		return messageSchema(f.Message, stack)
 	}
 	return nil, fmt.Errorf("unsupported field kind %s", f.Desc.Kind())
+}
+
+// joinDescriptions combines a field comment with the description of the
+// message it embeds (which carries oneof hints), field comment first.
+func joinDescriptions(parts ...string) string {
+	var kept []string
+	for _, p := range parts {
+		if p != "" {
+			kept = append(kept, p)
+		}
+	}
+	return strings.Join(kept, "\n\n")
 }
 
 // commentText turns a leading comment into plain text: the // markers and one
